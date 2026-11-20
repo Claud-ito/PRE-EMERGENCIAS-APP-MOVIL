@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="PRE_EMERGENCIAS_APP_MOVIL.Incidents.CoordinatedIncidentsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Mis incidentes">
+    <RefreshView x:Name="Refresher" Refreshing="OnRefreshing">
+        <ScrollView>
+            <VerticalStackLayout Padding="20,24,20,120" Spacing="16">
+                <Label
+                    Text="Incidentes a mi cargo"
+                    Style="{StaticResource Headline}"
+                    SemanticProperties.HeadingLevel="Level1" />
+                <Label
+                    Text="Incidentes activos que coordinas y todos los aportes recibidos."
+                    HorizontalTextAlignment="Center" />
+                <Button x:Name="RefreshButton" Text="Actualizar" Clicked="OnRefreshClicked" />
+                <Label x:Name="StatusLabel" HorizontalTextAlignment="Center" />
+                <VerticalStackLayout x:Name="IncidentsLayout" Spacing="12" />
+
+                <Border x:Name="DevSessionPanel" Padding="12" IsVisible="False">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Sesión de ensayo (solo desarrollo, hasta SA-01)" FontAttributes="Bold" FontSize="13" />
+                        <Label x:Name="DevSessionLabel" FontSize="12" />
+                        <Button Text="Actuar como encargado de ensayo" Clicked="OnUseCoordinatorClicked" />
+                        <Button Text="Actuar como testigo nuevo" Clicked="OnUseWitnessClicked" />
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

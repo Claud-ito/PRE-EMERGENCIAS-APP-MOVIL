@@ -66,6 +66,144 @@ namespace Univalle.Emergencias.Api.Data.Migrations
 
                     b.ToTable("AuditEntries", (string)null);
                 });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Incidents.Incident", b =>
+                {
+                    b.Property<Guid>("IncidentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("ClosedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CurrentCoordinatorUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("FloorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("InitialAlertAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<string>("InitialAlertDeliveryStatus")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<Guid>("InitialAlertEventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("InitialAlertLastAttemptAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("InitialAlertRecipientUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("InitialAlertState")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<Guid>("ModuleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("OpenedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.HasKey("IncidentId");
+
+                    b.HasIndex("InitialAlertEventId")
+                        .IsUnique();
+
+                    b.HasIndex("CurrentCoordinatorUserId", "Status");
+
+                    b.HasIndex("InitialAlertState", "InitialAlertLastAttemptAtUtc");
+
+                    b.HasIndex("ModuleId", "FloorId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Incidents_ActiveLocation")
+                        .HasFilter("[Status] = 'Active'");
+
+                    b.ToTable("Incidents", (string)null);
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Incidents.IncidentReport", b =>
+                {
+                    b.Property<Guid>("ReportId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClientRequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("FloorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("IncidentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsInitial")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("ModuleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PreliminarySeverity")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<DateTimeOffset>("ReportedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("ReporterUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.HasKey("ReportId");
+
+                    b.HasIndex("IncidentId", "ReportedAtUtc");
+
+                    b.HasIndex("ReporterUserId", "ClientRequestId")
+                        .IsUnique();
+
+                    b.ToTable("IncidentReports", (string)null);
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Incidents.IncidentReport", b =>
+                {
+                    b.HasOne("Univalle.Emergencias.Api.Incidents.Incident", "Incident")
+                        .WithMany("Reports")
+                        .HasForeignKey("IncidentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Incident");
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Incidents.Incident", b =>
+                {
+                    b.Navigation("Reports");
+                });
 #pragma warning restore 612, 618
         }
     }
