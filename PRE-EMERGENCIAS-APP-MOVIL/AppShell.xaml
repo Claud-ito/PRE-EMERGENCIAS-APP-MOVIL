@@ -3,12 +3,5 @@
     x:Class="PRE_EMERGENCIAS_APP_MOVIL.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:PRE_EMERGENCIAS_APP_MOVIL"
-    Title="PRE_EMERGENCIAS_APP_MOVIL">
-
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
-
-</Shell>
+    Title="UNIVALLE Emergencias"
+    FlyoutBehavior="Disabled" />

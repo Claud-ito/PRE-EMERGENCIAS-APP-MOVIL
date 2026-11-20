@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net10.0-android</TargetFrameworks>
-		<TargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('linux'))">$(TargetFrameworks);net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('osx'))">$(TargetFrameworks);net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
 
 		<!-- Note for MacCatalyst:
@@ -28,7 +28,7 @@
 		<MauiXamlInflator>SourceGen</MauiXamlInflator>
 
 		<!-- Display name -->
-		<ApplicationTitle>PRE-EMERGENCIAS-APP-MOVIL</ApplicationTitle>
+		<ApplicationTitle>UNIVALLE Emergencias</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.preemergenciasappmovil</ApplicationId>
@@ -70,4 +70,7 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 	</ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\src\Univalle.Emergencias.Contracts\Univalle.Emergencias.Contracts.csproj" />
+  </ItemGroup>
 </Project>

@@ -1,10 +1,23 @@
-﻿namespace PRE_EMERGENCIAS_APP_MOVIL
+using Univalle.Emergencias.Contracts.Common;
+
+namespace PRE_EMERGENCIAS_APP_MOVIL;
+
+public partial class AppShell : Shell
 {
-    public partial class AppShell : Shell
+    public AppShell(MainPage mainPage)
     {
-        public AppShell()
+        InitializeComponent();
+
+        var home = new ShellContent
         {
-            InitializeComponent();
-        }
+            Title = "Inicio",
+            Route = MobileRoutes.Home,
+            Content = mainPage
+        };
+        var tab = new Tab();
+        tab.Items.Add(home);
+        var root = new FlyoutItem { Route = "root" };
+        root.Items.Add(tab);
+        Items.Add(root);
     }
 }
