@@ -63,6 +63,7 @@ dotnet test tests/Univalle.Emergencias.Tests/Univalle.Emergencias.Tests.csproj
 | `/api/v1/locations/floors/{id}` | PUT, DELETE. |
 | `/api/v1/support-contacts` | GET, POST; GET/PUT/DELETE por ID. |
 | `/api/v1/brigades` | GET, POST; PUT/DELETE por ID; GET `users` y `specialties`. |
+| `/api/v1/brigades/modules/{id}/leader` | GET de brigada, líder e integrantes actuales; visible desde la pantalla de módulos. |
 | `/api/v1/injury-records/incidents` | GET de selección mínima para Médico. |
 | `/api/v1/incidents/{id}/injury-records` | GET, POST para Médico. |
 
@@ -72,8 +73,10 @@ DELETE desactiva; no borra físicamente. `includeInactive=true` muestra historia
 
 - API, contratos, pruebas y comprobaciones compilaron con las versiones reales 10.0.15, sin errores ni advertencias.
 - Pasaron 64 comprobaciones de permisos, pipeline MVC en memoria, relaciones, índices, instantánea de migración y catálogo de especialidades. Incluyen la lectura de la configuración real de la API y los nombres exactos de RF05 para SySO y Mantenimiento.
-- Se ejecutaron directamente 21 métodos Fact con sus aserciones xUnit y SQLite en memoria, preservando la omisión de dos casos que exigen SQL Server real. El testhost habitual está bloqueado en este entorno; no se presenta esta ejecución como una ejecución de `dotnet test`.
+- Se ejecutaron directamente 24 métodos Fact con sus aserciones xUnit y SQLite en memoria, preservando la omisión de tres casos que exigen SQL Server real. El testhost habitual está bloqueado en este entorno; no se presenta esta ejecución como una ejecución de `dotnet test`.
 - Los escenarios incluyen reportes y reintentos de Alejandro, auditoría, catálogos, bajas, cero/varias fichas, rechazo de fichas huérfanas y prioridad del catálogo real sobre la sustitución de desarrollo.
 - Falta probar concurrencia con SQL Server real y el funcionamiento MAUI Android/iOS. La verificación iOS de Alejandro no valida automáticamente las nuevas pantallas de Diana.
 
-La rama local se preparó con archivos leídos de GitHub. La publicación requiere un clon con historial remoto o crear un commit sobre el árbol remoto vigente: no subir una historia Git inicializada desde ZIP como si fuese la historia del equipo.
+Las pruebas adicionales cubren brigadas con varios módulos, consulta del líder por módulo, cambio de líder, conservación del historial y rechazo de integrantes o asignaciones inválidos. `scripts/windows/Verificar-Diana.cmd` prepara la ejecución habitual de las pruebas y los tres escenarios de SQL Server sobre LocalDB. La ejecución real sigue pendiente hasta revisar su resultado. El detalle de entrega y comprobación está en `docs/DIANA_Entrega_Hoy.md`.
+
+La rama `diana/sprint-2` se trabaja ahora en un clon con el historial remoto del equipo. Los commits adicionales requieren publicarse para que aparezcan en GitHub.

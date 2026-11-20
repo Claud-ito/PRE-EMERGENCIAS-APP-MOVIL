@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Univalle.Emergencias.Api.Data;
 using Univalle.Emergencias.Contracts.Audit;
 using Univalle.Emergencias.Contracts.Common;
+using Univalle.Emergencias.Contracts.Brigades;
 using Univalle.Emergencias.Contracts.Diana;
 using Univalle.Emergencias.Contracts.Identity;
 
@@ -25,6 +26,22 @@ public sealed class BrigadesController(AppDbContext db, IAuditTrail audit, IServ
         return users is null ? Error(503, "users_not_integrated", "La consulta de cuentas todavía no está disponible.") :
             Ok((await users.GetAssignableUsersAsync(ct)).Where(x => x.IsActive && x.Role is UserRole.LiderBrigada or UserRole.Brigadista));
     }
+    [HttpGet("modules/{moduleId:guid}/leader")]
+    public async Task<IActionResult> ModuleLeader(Guid moduleId, CancellationToken ct) {
+        if (!await Db.Set<LocationModule>().AnyAsync(x => x.ModuleId == moduleId, ct)) return NotFound();
+        var directory = HttpContext.RequestServices.GetService<IBrigadeUserDirectory>();
+        if (directory is null) return Error(503, "users_not_integrated", "La consulta de cuentas todavía no está disponible.");
+        var lookup = HttpContext.RequestServices.GetRequiredService<IBrigadeLeaderLookup>();
+        var leader = await lookup.GetCurrentLeaderAsync(moduleId, clock.UtcNow, ct);
+        if (leader is null) return Ok(new ModuleBrigadeStatus(moduleId, null));
+        var brigade = await Db.Set<Brigade>().AsNoTracking().SingleAsync(x => x.BrigadeId == leader.BrigadeId, ct);
+        var users = await directory.GetAssignableUsersAsync(ct);
+        var leaderName = users.FirstOrDefault(x => x.UserId == leader.UserId)?.DisplayName ?? leader.UserId.ToString();
+        var members = leader.Members.Select(m => new BrigadeMemberView(m.UserId,
+            users.FirstOrDefault(u => u.UserId == m.UserId)?.DisplayName ?? m.UserId.ToString(), m.Specialty)).ToArray();
+        return Ok(new ModuleBrigadeStatus(moduleId, new BrigadeLeaderView(brigade.BrigadeId, brigade.Name,
+            leader.UserId, leaderName, members)));
+    }
     [HttpGet]
     public async Task<IActionResult> List(bool includeInactive = false, CancellationToken ct = default) {
         var brigades = await Db.Set<Brigade>().AsNoTracking().Include(x => x.Members).Where(x => includeInactive || x.IsActive).OrderBy(x => x.Name).ToListAsync(ct);
@@ -39,7 +56,7 @@ public sealed class BrigadesController(AppDbContext db, IAuditTrail audit, IServ
     private async Task<IActionResult> Store(Guid? id, BrigadeInput input, CancellationToken ct) {
         if (!SpecialtiesValid()) return GetSpecialties();
         if (input.Members is null || input.ModuleIds is null || input.LeaderUserId == Guid.Empty
-            || input.Members.Count == 0 || input.Members.Any(x => x.UserId == Guid.Empty || !Specialties.Contains(x.Specialty))
+            || input.Members.Count == 0 || input.Members.Any(x => x is null || x.UserId == Guid.Empty || !Specialties.Contains(x.Specialty))
             || input.Members.Select(x => x.UserId).Distinct().Count() != input.Members.Count
             || input.ModuleIds.Any(x => x == Guid.Empty) || input.ModuleIds.Distinct().Count() != input.ModuleIds.Count
             || !input.Members.Any(x => x.UserId == input.LeaderUserId)) return Error(400, "invalid_brigade", "Revisa integrantes, especialidades, líder y módulos.");
@@ -72,7 +89,10 @@ public sealed class BrigadesController(AppDbContext db, IAuditTrail audit, IServ
         // Cerrar antes de insertar permite el índice único filtrado; la transacción incluye ambos y auditoría.
         await using var transaction = await Db.Database.BeginTransactionAsync(ct);
         foreach (var assignment in old) assignment.EndedAtUtc = now;
-        await Db.SaveChangesAsync(ct);
+        try { await Db.SaveChangesAsync(ct); }
+        catch (DbUpdateException ex) when (ex.InnerException is Microsoft.Data.SqlClient.SqlException sql && sql.Number is 2601 or 2627) {
+            return Error(409, "duplicate_or_assignment_conflict", "El nombre o módulo ya está asignado. Actualiza los datos.");
+        }
         foreach (var moduleId in input.ModuleIds) Db.Add(new BrigadeModuleAssignment {
             AssignmentId = Guid.NewGuid(), BrigadeId = brigade.BrigadeId, ModuleId = moduleId,
             LeaderUserId = brigade.LeaderUserId, MembersJson = JsonSerializer.Serialize(input.Members), StartedAtUtc = now });

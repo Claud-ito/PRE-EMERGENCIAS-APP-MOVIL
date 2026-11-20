@@ -33,3 +33,8 @@ public sealed record CreateInjuryRecordInput(bool EvaluatedOrAttended);
 
 public sealed record InjuryIncidentView(Guid IncidentId, string ModuleName, string FloorName,
     string Status, DateTimeOffset OpenedAtUtc);
+
+public sealed record BrigadeMemberView(Guid UserId, string DisplayName, string Specialty);
+public sealed record BrigadeLeaderView(Guid BrigadeId, string BrigadeName, Guid LeaderUserId,
+    string LeaderName, IReadOnlyList<BrigadeMemberView> Members);
+public sealed record ModuleBrigadeStatus(Guid ModuleId, BrigadeLeaderView? Leader);
