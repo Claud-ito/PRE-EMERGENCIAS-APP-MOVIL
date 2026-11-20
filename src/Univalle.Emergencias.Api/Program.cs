@@ -57,6 +57,7 @@ builder.Services.AddSingleton<IServerClock, SystemServerClock>();
 builder.Services.AddScoped<IAuditTrail, EfAuditTrail>();
 
 // Módulos (cada dueño registra los suyos).
+Univalle.Emergencias.Api.Diana.DianaRegistration.AddDianaModules(builder.Services);
 builder.Services.AddIncidentModule();
 
 // Sustituciones de desarrollo: siempre al final, después de los módulos reales.

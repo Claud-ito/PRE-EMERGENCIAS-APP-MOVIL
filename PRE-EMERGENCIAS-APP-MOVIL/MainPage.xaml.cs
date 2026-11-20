@@ -11,6 +11,9 @@ public partial class MainPage : ContentPage
     public MainPage(IApiEndpointSettings settings, ApiClockClient clockClient)
     {
         InitializeComponent();
+        var catalogs = new Button { Text = "Catálogos y atención" };
+        catalogs.Clicked += async (_, _) => await Shell.Current.GoToAsync("diana");
+        if (Content is ScrollView { Content: Layout layout }) layout.Children.Add(catalogs);
         _settings = settings;
         _clockClient = clockClient;
         ApiUrlEntry.Text = _settings.CurrentUrl;
