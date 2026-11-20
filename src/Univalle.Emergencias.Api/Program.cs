@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Univalle.Emergencias.Api.Data;
+using Univalle.Emergencias.Api.Incidents;
 using Univalle.Emergencias.Api.Services;
 using Univalle.Emergencias.Contracts.Audit;
 using Univalle.Emergencias.Contracts.Common;
@@ -54,6 +55,16 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(conn
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IServerClock, SystemServerClock>();
 builder.Services.AddScoped<IAuditTrail, EfAuditTrail>();
+
+// Módulos (cada dueño registra los suyos).
+builder.Services.AddIncidentModule();
+
+// Sustituciones de desarrollo: siempre al final, después de los módulos reales.
+if (builder.Environment.IsDevelopment()
+    && builder.Configuration.GetValue("IncidentDevSubstitutes:Enabled", true))
+{
+    builder.Services.AddIncidentDevelopmentSubstitutes();
+}
 
 var app = builder.Build();
 
