@@ -1,0 +1,8 @@
+﻿<maui:MauiWinUIApplication
+    x:Class="PRE_EMERGENCIAS_APP_MOVIL.WinUI.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:maui="using:Microsoft.Maui"
+    xmlns:local="using:PRE_EMERGENCIAS_APP_MOVIL.WinUI">
+
+</maui:MauiWinUIApplication>
