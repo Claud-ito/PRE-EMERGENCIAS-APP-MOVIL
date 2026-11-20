@@ -60,6 +60,13 @@ public static class IncidentRoutes
     public static string IncidentReports(Guid incidentId) => $"{Base}/{incidentId}/reports";
 }
 
+/// <summary>Rutas Shell del módulo de incidentes (app móvil).</summary>
+public static class IncidentMobileRoutes
+{
+    public const string Report = "report-incident";
+    public const string Coordinated = "coordinated-incidents";
+}
+
 public static class IncidentErrorCodes
 {
     /// <summary>El módulo o piso no existe, está inactivo o el piso no pertenece al módulo.</summary>

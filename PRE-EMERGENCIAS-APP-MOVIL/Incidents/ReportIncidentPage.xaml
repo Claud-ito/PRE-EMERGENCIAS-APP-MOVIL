@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="PRE_EMERGENCIAS_APP_MOVIL.Incidents.ReportIncidentPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Reportar">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,24,20,120" Spacing="16">
+            <Label
+                Text="Reportar emergencia"
+                Style="{StaticResource Headline}"
+                SemanticProperties.HeadingLevel="Level1" />
+            <Label
+                Text="Completa los tres pasos y envía. Tu usuario y la hora los registra el servidor."
+                HorizontalTextAlignment="Center" />
+
+            <!-- Paso 1: tipo -->
+            <Border Padding="16">
+                <VerticalStackLayout Spacing="8">
+                    <Label
+                        Text="1. ¿Qué ocurre?"
+                        FontAttributes="Bold"
+                        FontSize="18"
+                        SemanticProperties.HeadingLevel="Level2" />
+                    <RadioButton
+                        x:Name="FireRadio"
+                        GroupName="IncidentType"
+                        Content="Incendio"
+                        CheckedChanged="OnFormChanged" />
+                    <RadioButton
+                        x:Name="FirstAidRadio"
+                        GroupName="IncidentType"
+                        Content="Primeros auxilios"
+                        CheckedChanged="OnFormChanged" />
+                    <Label x:Name="TypeError" TextColor="{StaticResource Magenta}" IsVisible="False" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Paso 2: ubicación -->
+            <Border Padding="16">
+                <VerticalStackLayout Spacing="8">
+                    <Label
+                        Text="2. ¿Dónde?"
+                        FontAttributes="Bold"
+                        FontSize="18"
+                        SemanticProperties.HeadingLevel="Level2" />
+                    <Picker
+                        x:Name="ModulePicker"
+                        Title="Módulo"
+                        ItemDisplayBinding="{Binding Name}"
+                        SelectedIndexChanged="OnModuleChanged"
+                        SemanticProperties.Description="Módulo donde ocurre la emergencia" />
+                    <Label x:Name="ModuleError" TextColor="{StaticResource Magenta}" IsVisible="False" />
+                    <Picker
+                        x:Name="FloorPicker"
+                        Title="Piso"
+                        ItemDisplayBinding="{Binding Name}"
+                        IsEnabled="False"
+                        SelectedIndexChanged="OnFormChanged"
+                        SemanticProperties.Description="Piso donde ocurre la emergencia" />
+                    <Label x:Name="FloorError" TextColor="{StaticResource Magenta}" IsVisible="False" />
+                    <Button
+                        x:Name="ReloadOptionsButton"
+                        Text="Actualizar ubicaciones"
+                        Clicked="OnReloadOptionsClicked" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Paso 3: gravedad y envío -->
+            <Border Padding="16">
+                <VerticalStackLayout Spacing="8">
+                    <Label
+                        Text="3. ¿Qué tan grave parece?"
+                        FontAttributes="Bold"
+                        FontSize="18"
+                        SemanticProperties.HeadingLevel="Level2" />
+                    <RadioButton
+                        x:Name="MildRadio"
+                        GroupName="Severity"
+                        Content="Leve"
+                        CheckedChanged="OnFormChanged" />
+                    <RadioButton
+                        x:Name="SevereRadio"
+                        GroupName="Severity"
+                        Content="Grave"
+                        CheckedChanged="OnFormChanged" />
+                    <RadioButton
+                        x:Name="VerySevereRadio"
+                        GroupName="Severity"
+                        Content="Muy grave"
+                        CheckedChanged="OnFormChanged" />
+                    <Label x:Name="SeverityError" TextColor="{StaticResource Magenta}" IsVisible="False" />
+                    <Editor
+                        x:Name="DetailsEditor"
+                        Placeholder="Detalles (opcional)"
+                        MaxLength="500"
+                        AutoSize="TextChanges"
+                        TextChanged="OnFormChanged"
+                        SemanticProperties.Description="Detalles opcionales del reporte" />
+                    <Label x:Name="DetailsError" TextColor="{StaticResource Magenta}" IsVisible="False" />
+                    <Button
+                        x:Name="SubmitButton"
+                        Text="Enviar reporte"
+                        FontAttributes="Bold"
+                        Clicked="OnSubmitClicked" />
+                    <ActivityIndicator x:Name="BusyIndicator" IsVisible="False" IsRunning="False" />
+                    <Label
+                        x:Name="StatusLabel"
+                        HorizontalTextAlignment="Center"
+                        FontAttributes="Bold"
+                        SemanticProperties.Description="Estado del reporte" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label
+                x:Name="DevSessionLabel"
+                FontSize="12"
+                TextColor="{StaticResource Gray500}"
+                HorizontalTextAlignment="Center"
+                IsVisible="False" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
