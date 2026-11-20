@@ -46,7 +46,14 @@ public sealed class EfAuditTrail(AppDbContext db, IServerClock clock) : IAuditTr
 
         if (request.MetadataJson is not null)
         {
-            using var _ = JsonDocument.Parse(request.MetadataJson);
+            try
+            {
+                using var document = JsonDocument.Parse(request.MetadataJson);
+            }
+            catch (JsonException ex)
+            {
+                throw new ArgumentException("MetadataJson debe contener JSON válido.", nameof(request), ex);
+            }
         }
 
         var now = clock.UtcNow.ToUniversalTime();

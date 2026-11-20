@@ -34,6 +34,8 @@ builder.Services.AddProblemDetails(options =>
             problem.Extensions["code"] = problem.Status switch
             {
                 StatusCodes.Status400BadRequest => ApiErrorCodes.InvalidInput,
+                StatusCodes.Status401Unauthorized => ApiErrorCodes.Unauthenticated,
+                StatusCodes.Status403Forbidden => ApiErrorCodes.Forbidden,
                 StatusCodes.Status404NotFound => ApiErrorCodes.NotFound,
                 _ => ApiErrorCodes.Unexpected
             };
@@ -62,7 +64,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.MapControllers();
 
 app.Run();
