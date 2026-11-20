@@ -1,3 +1,6 @@
 <Solution>
   <Project Path="PRE-EMERGENCIAS-APP-MOVIL/PRE-EMERGENCIAS-APP-MOVIL.csproj" />
+  <Project Path="src/Univalle.Emergencias.Contracts/Univalle.Emergencias.Contracts.csproj" />
+  <Project Path="src/Univalle.Emergencias.Api/Univalle.Emergencias.Api.csproj" />
+  <Project Path="tests/Univalle.Emergencias.Tests/Univalle.Emergencias.Tests.csproj" />
 </Solution>
