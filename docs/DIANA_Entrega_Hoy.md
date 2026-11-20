@@ -11,7 +11,7 @@
 
 Las cuentas de ensayo de las pruebas están únicamente en el proyecto de pruebas. No se instala otro sistema de usuarios ni se amplían permisos X-Dev en la API o en MAUI.
 
-## Comprobación pendiente con SQL Server real
+## Comprobación aprobada con SQL Server real
 
 En Windows con LocalDB y las dependencias restauradas, abrir `scripts/windows/Verificar-Diana.cmd`.
 Ejecuta las pruebas habituales con `UNIVALLE_TEST_SQLSERVER` apuntando a `(localdb)\MSSQLLocalDB`.
@@ -19,12 +19,14 @@ Las pruebas SQL crean y eliminan exclusivamente sus bases temporales, con nombre
 El resultado se escribe en la carpeta `Resultados_Diana_SQLServer`, junto al repositorio: `salida.txt` y `Diana_SQLServer.trx`.
 Un error de LocalDB o del testhost debe resolverse antes de declarar esta comprobación aprobada.
 
+Resultado del 20/11/2026: Diana ejecutó el script en su terminal Windows. Se revisaron `salida.txt` y los contadores de `Diana_SQLServer.trx`: **27 pruebas ejecutadas, 27 aprobadas, 0 errores y 0 omitidas**, incluyendo los tres escenarios de SQL Server. La ejecución habitual de `dotnet test` y las pruebas con LocalDB quedan verificadas.
+
 ## Verificación disponible
 
 - Compilación de API, contratos y pruebas sin errores ni advertencias con los paquetes reales 10.0.15.
 - 24 escenarios Fact ejecutados directamente y aprobados con aserciones xUnit/SQLite.
-- Tres escenarios de SQL Server omitidos por falta del entorno requerido: dos de concurrencia de Alejandro y uno de migración/brigadas/historial de Diana.
-- La ejecución directa de Fact no sustituye el testhost, SQL Server real ni las pruebas de interfaz en Android/iOS.
+- Posteriormente, 27 pruebas aprobadas mediante `dotnet test` en la terminal de Diana, incluidas dos de concurrencia de Alejandro y una de migración/brigadas/historial de Diana con SQL Server LocalDB.
+- Las pruebas de interfaz en Android/iOS siguen pendientes y requieren la integración de sesión real.
 
 ## Qué debe probarse al llegar Said
 
