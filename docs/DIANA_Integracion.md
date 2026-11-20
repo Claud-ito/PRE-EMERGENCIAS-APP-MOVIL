@@ -2,14 +2,14 @@
 
 Base remota revisada el 20/11/2026: `ecd0883f6ed49cbf41aa3d9ba94eed1e9144f33e`.
 Incluye el [PR #1 de Alejandro](https://github.com/Claud-ito/PRE-EMERGENCIAS-APP-MOVIL/pull/1), integrado el 20/11/2026 a las 14:24 de Bolivia. Al revisar no había entregas nuevas de Said ni Jorge.
-Se conserva el alcance asignado a Diana en `V1_Reparto_Trabajo_UNIVALLE_Hasta_Sprint_2.md`. Las tres especialidades se dejaron pendientes por indicación de Diana: no se pudo leer el Excel en este entorno ni se inventan nombres.
+Se conserva el alcance asignado a Diana en `V1_Reparto_Trabajo_UNIVALLE_Hasta_Sprint_2.md`. Las especialidades quedaron confirmadas al recibir el contenido tabular de RF05: Primeros auxilios, Evacuación y Extinción de fuegos.
 
 ## Entregas y dependencias
 
 | Tarea | Avance preparado | Pendiente |
 | --- | --- | --- |
 | DI-01 / RF04 | API y MAUI de módulos/pisos, pertenencia, bajas lógicas y lectura histórica. `ILocationCatalog` real se registra antes de las sustituciones de Alejandro. Su reporte consulta y valida estas ubicaciones. | Cuentas y permisos reales SA-01; comprobación móvil. |
-| DI-02 / RF05 | API y MAUI de brigadas, integrantes, líder y varios módulos. Historial de asignaciones; índice único por módulo vigente. `IBrigadeLeaderLookup` preparado para AUTO. | Tres especialidades confirmadas; cuentas SA-02 mediante `IBrigadeUserDirectory`; conexión con Jorge. |
+| DI-02 / RF05 | API y MAUI de brigadas, integrantes, líder y varios módulos. Historial de asignaciones; índice único por módulo vigente. `IBrigadeLeaderLookup` preparado para AUTO. | Cuentas SA-02 mediante `IBrigadeUserDirectory`; conexión con Jorge. |
 | DI-03 / RF06 | API y MAUI de consultorio, centros médicos y bomberos; altas, consulta, edición y desactivación conservando referencias. | Sesión real y comprobación móvil. |
 | DI-04 / RF10 | Fichas relacionadas con la tabla real `Incidents`, FK con borrado restringido, `EfIncidentReader` de Alejandro y selector mínimo de incidentes para Médico. Creación después de evaluar/atender; cero o varias fichas por caso. | Sesión real del Médico y comprobación móvil. |
 | DI-05 | Pruebas del flujo integrado y de permisos. | Plantilla clínica, visibilidad para encargados y contingencia ante ausencia del médico, pendientes de SySO. |
@@ -43,7 +43,7 @@ La ficha base solo almacena ID, incidente, médico y fecha del servidor. No iden
 
 ### Especialidades
 
-Tras contrastar los tres nombres con el Sprint 0, configurar exactamente tres valores distintos en `Diana:BrigadeSpecialties` (o variables `Diana__BrigadeSpecialties__0`, `__1`, `__2`). Hasta entonces las operaciones de asignación de brigadas informan `specialties_pending_confirmation`. No hay especialidades supuestas ni catálogo de ampliación libre.
+RF05 confirma exactamente **Primeros auxilios**, **Evacuación** y **Extinción de fuegos**. Están incluidas en `Diana:BrigadeSpecialties` en `appsettings.json` y la pantalla las obtiene de `GET /api/v1/brigades/specialties`. Este pendiente queda resuelto. La asignación de personas sigue dependiendo de las cuentas reales SA-02. Las comprobaciones verifican los tres nombres exactos y su consulta por SySO y Mantenimiento, además del rechazo de una configuración ausente.
 
 ## Migraciones y rutas
 
@@ -71,7 +71,7 @@ DELETE desactiva; no borra físicamente. `includeInactive=true` muestra historia
 ## Evidencia del 20/11/2026
 
 - API, contratos, pruebas y comprobaciones compilaron con las versiones reales 10.0.15, sin errores ni advertencias.
-- Pasaron 59 comprobaciones de permisos, pipeline MVC en memoria, relaciones, índices e instantánea de migración.
+- Pasaron 64 comprobaciones de permisos, pipeline MVC en memoria, relaciones, índices, instantánea de migración y catálogo de especialidades. Incluyen la lectura de la configuración real de la API y los nombres exactos de RF05 para SySO y Mantenimiento.
 - Se ejecutaron directamente 21 métodos Fact con sus aserciones xUnit y SQLite en memoria, preservando la omisión de dos casos que exigen SQL Server real. El testhost habitual está bloqueado en este entorno; no se presenta esta ejecución como una ejecución de `dotnet test`.
 - Los escenarios incluyen reportes y reintentos de Alejandro, auditoría, catálogos, bajas, cero/varias fichas, rechazo de fichas huérfanas y prioridad del catálogo real sobre la sustitución de desarrollo.
 - Falta probar concurrencia con SQL Server real y el funcionamiento MAUI Android/iOS. La verificación iOS de Alejandro no valida automáticamente las nuevas pantallas de Diana.

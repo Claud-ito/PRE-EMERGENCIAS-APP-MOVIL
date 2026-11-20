@@ -44,6 +44,7 @@ using (var db = new AppDbContext(options)) {
 
 Task<(WebApplication App, HttpClient Http)> Start(TestIdentity? identity) {
     var builder = WebApplication.CreateBuilder(); builder.Logging.ClearProviders();
+    foreach (var entry in builder.Configuration.GetSection("Diana:BrigadeSpecialties").GetChildren()) entry.Value = null;
     builder.Services.AddControllers().AddApplicationPart(typeof(LocationsController).Assembly);
     builder.Services.AddDbContext<AppDbContext>(b => b.UseSqlServer("Server=localhost;Database=Unused;Integrated Security=true"));
     builder.Services.AddSingleton(TimeProvider.System);
@@ -76,7 +77,7 @@ try {
     }
     foreach (var role in new[] { UserRole.SySO, UserRole.Mantenimiento }) {
         identity.User = new(Guid.NewGuid(), true, role, allPermissions);
-        Check((await host.Http.GetAsync("api/v1/brigades/specialties")).StatusCode == HttpStatusCode.ServiceUnavailable, role + " llega al módulo y recibe especialidades pendientes");
+        Check((await host.Http.GetAsync("api/v1/brigades/specialties")).StatusCode == HttpStatusCode.ServiceUnavailable, role + " recibe rechazo si el catálogo no está configurado");
         identity.User = identity.User with { IsActive = false };
         foreach (var route in routes) Check((await host.Http.GetAsync(route)).StatusCode == HttpStatusCode.Forbidden, "La baja revoca la sesión emitida: " + role);
     }
@@ -90,6 +91,18 @@ try {
         identity.User = new(Guid.NewGuid(), false, UserRole.SySO, allPermissions);
         using var request = new HttpRequestMessage(operation, operation == HttpMethod.Post ? routes[0] : routes[0] + "/" + Guid.NewGuid()) { Content = JsonContent.Create(new ModuleInput("A", "Módulo")) };
         Check((await host.Http.SendAsync(request)).StatusCode == HttpStatusCode.Forbidden, "La API bloquea escritura directa con cuenta inactiva: " + operation);
+    }
+    var sourceConfiguration = new ConfigurationBuilder()
+        .AddJsonFile(Path.Combine(AppContext.BaseDirectory, "appsettings.diana-source.json")).Build();
+    var specialties = sourceConfiguration.GetSection("Diana:BrigadeSpecialties").Get<string[]>() ?? [];
+    var expectedSpecialties = new[] { "Primeros auxilios", "Evacuación", "Extinción de fuegos" };
+    Check(specialties.SequenceEqual(expectedSpecialties), "La configuración de la API contiene las tres especialidades de RF05");
+    for (var i = 0; i < specialties.Length; i++) host.App.Configuration[$"Diana:BrigadeSpecialties:{i}"] = specialties[i];
+    foreach (var role in new[] { UserRole.SySO, UserRole.Mantenimiento }) {
+        identity.User = new(Guid.NewGuid(), true, role, allPermissions);
+        using var response = await host.Http.GetAsync("api/v1/brigades/specialties");
+        Check(response.StatusCode == HttpStatusCode.OK, role + " consulta el catálogo confirmado");
+        Check((await response.Content.ReadFromJsonAsync<string[]>())!.SequenceEqual(expectedSpecialties), role + " recibe los nombres exactos de RF05");
     }
 } finally { host.Http.Dispose(); await host.App.DisposeAsync(); }
 Console.WriteLine($"Resultado: {assertions} comprobaciones correctas. No comprueba persistencia SQL ni ejecución MAUI.");
