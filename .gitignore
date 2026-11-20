@@ -9,3 +9,14 @@ obj/
 
 # OS-generated files
 .DS_Store
+
+# Local configuration and generated test data
+.env
+.env.*
+!.env.example
+**/appsettings.Local.json
+**/appsettings.*.local.json
+*.pfx
+*.mdf
+*.ldf
+TestResults/
