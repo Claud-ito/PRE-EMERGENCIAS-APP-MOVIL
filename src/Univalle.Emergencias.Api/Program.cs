@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Univalle.Emergencias.Api.Data;
 using Univalle.Emergencias.Api.Incidents;
 using Univalle.Emergencias.Api.Identity;
+using Univalle.Emergencias.Api.Suggestions;
 using Univalle.Emergencias.Api.Services;
 using Univalle.Emergencias.Contracts.Audit;
 using Univalle.Emergencias.Contracts.Common;
@@ -61,6 +62,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IIdentityContext, DatabaseIdentityContext>();
 builder.Services.AddScoped<SessionService>();
 builder.Services.AddScoped<Univalle.Emergencias.Contracts.Diana.IBrigadeUserDirectory, BrigadeUserDirectory>();
+builder.Services.AddScoped<SuggestionService>();
 
 // Módulos (cada dueño registra los suyos).
 Univalle.Emergencias.Api.Diana.DianaRegistration.AddDianaModules(builder.Services);
@@ -92,6 +94,11 @@ if (args.Contains("--bootstrap-siso", StringComparer.Ordinal)
     || args.Contains("--seed-development-users", StringComparer.Ordinal))
 {
     await AccountBootstrapper.RunAsync(app, args);
+    return;
+}
+if (args.Contains("--seed-closed-incident", StringComparer.Ordinal))
+{
+    await SuggestionDevelopmentSeeder.RunAsync(app);
     return;
 }
 

@@ -470,6 +470,34 @@ namespace Univalle.Emergencias.Api.Data.Migrations
                     b.ToTable("IncidentReports", (string)null);
                 });
 
+            modelBuilder.Entity("Univalle.Emergencias.Api.Suggestions.IncidentSuggestion", b =>
+                {
+                    b.Property<Guid>("SuggestionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AuthorUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("IncidentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.HasKey("SuggestionId");
+
+                    b.HasIndex("AuthorUserId");
+
+                    b.HasIndex("IncidentId", "CreatedAtUtc");
+
+                    b.ToTable("IncidentSuggestions", (string)null);
+                });
+
             modelBuilder.Entity("Univalle.Emergencias.Api.Diana.BrigadeMembership", b =>
                 {
                     b.HasOne("Univalle.Emergencias.Api.Diana.Brigade", null)
@@ -530,6 +558,25 @@ namespace Univalle.Emergencias.Api.Data.Migrations
                         .HasForeignKey("IncidentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Incident");
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Suggestions.IncidentSuggestion", b =>
+                {
+                    b.HasOne("Univalle.Emergencias.Api.Identity.UserAccount", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Univalle.Emergencias.Api.Incidents.Incident", "Incident")
+                        .WithMany()
+                        .HasForeignKey("IncidentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Author");
 
                     b.Navigation("Incident");
                 });

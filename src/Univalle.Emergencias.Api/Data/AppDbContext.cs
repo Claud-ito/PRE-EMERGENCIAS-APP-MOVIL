@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Univalle.Emergencias.Api.Incidents;
 using Univalle.Emergencias.Api.Identity;
+using Univalle.Emergencias.Api.Suggestions;
 
 namespace Univalle.Emergencias.Api.Data;
 
@@ -11,6 +12,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<IncidentReport> IncidentReports => Set<IncidentReport>();
     public DbSet<UserAccount> Users => Set<UserAccount>();
     public DbSet<UserSession> UserSessions => Set<UserSession>();
+    public DbSet<IncidentSuggestion> IncidentSuggestions => Set<IncidentSuggestion>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
