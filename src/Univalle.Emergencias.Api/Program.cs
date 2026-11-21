@@ -1,3 +1,4 @@
+
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,53 +9,86 @@ using Univalle.Emergencias.Api.Suggestions;
 using Univalle.Emergencias.Api.Services;
 using Univalle.Emergencias.Contracts.Audit;
 using Univalle.Emergencias.Contracts.Common;
+<<<<<<< Updated upstream
 using Univalle.Emergencias.Contracts.Identity;
+=======
+using Univalle.Emergencias.Contracts.Turns;
+>>>>>>> Stashed changes
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configuracion de controladores y respuestas JSON
 builder.Services.AddControllers()
-    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()))
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter()))
     .ConfigureApiBehaviorOptions(options =>
     {
         options.InvalidModelStateResponseFactory = context =>
         {
-            var problem = new ValidationProblemDetails(context.ModelState)
+            var problem = new ValidationProblemDetails(
+                context.ModelState)
             {
                 Status = StatusCodes.Status400BadRequest,
                 Title = "La solicitud no es válida."
             };
+
             problem.Extensions["code"] = ApiErrorCodes.InvalidInput;
+
             return new BadRequestObjectResult(problem);
         };
     });
+
+// OpenAPI
 builder.Services.AddOpenApi();
+
+// Manejo de errores
 builder.Services.AddProblemDetails(options =>
 {
     options.CustomizeProblemDetails = context =>
     {
         var problem = context.ProblemDetails;
+
         if (!problem.Extensions.ContainsKey("code"))
         {
             problem.Extensions["code"] = problem.Status switch
             {
-                StatusCodes.Status400BadRequest => ApiErrorCodes.InvalidInput,
-                StatusCodes.Status401Unauthorized => ApiErrorCodes.Unauthenticated,
-                StatusCodes.Status403Forbidden => ApiErrorCodes.Forbidden,
-                StatusCodes.Status404NotFound => ApiErrorCodes.NotFound,
+                StatusCodes.Status400BadRequest =>
+                    ApiErrorCodes.InvalidInput,
+
+                StatusCodes.Status401Unauthorized =>
+                    ApiErrorCodes.Unauthenticated,
+
+                StatusCodes.Status403Forbidden =>
+                    ApiErrorCodes.Forbidden,
+
+                StatusCodes.Status404NotFound =>
+                    ApiErrorCodes.NotFound,
+
                 _ => ApiErrorCodes.Unexpected
             };
         }
     };
 });
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+// Conexion a SQL Server
+var connectionString =
+    builder.Configuration.GetConnectionString(
+        "DefaultConnection");
+
 if (string.IsNullOrWhiteSpace(connectionString))
 {
     throw new InvalidOperationException(
-        "Configure ConnectionStrings:DefaultConnection mediante appsettings.Development.json o una variable de entorno.");
+        "Configure ConnectionStrings:DefaultConnection " +
+        "mediante appsettings.Development.json " +
+        "o una variable de entorno.");
 }
 
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+// Entity Framework Core
+builder.Services.AddDbContext<AppDbContext>(
+    options => options.UseSqlServer(connectionString));
+
+// Servicios originales de Said
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IServerClock, SystemServerClock>();
 builder.Services.AddScoped<IAuditTrail, EfAuditTrail>();
@@ -75,6 +109,19 @@ if (builder.Environment.IsDevelopment()
     builder.Services.AddIncidentDevelopmentSubstitutes();
 }
 
+// ==========================================
+// MODULO DE TURNOS - JORGE
+// ==========================================
+
+// Servicio para consultar los turnos desde SQL Server
+builder.Services.AddScoped<ITurnResolver, DatabaseTurnResolver>();
+
+// ==========================================
+// CONSTRUCCION DE LA APLICACION
+// ==========================================
+
+// IMPORTANTE: Todos los servicios deben
+// registrarse ANTES de esta instruccion.
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -82,12 +129,16 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+// Manejo de excepciones HTTP
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
+// Registrar las rutas de los controladores
 app.MapControllers();
 
 if (args.Contains("--bootstrap-siso", StringComparer.Ordinal)
