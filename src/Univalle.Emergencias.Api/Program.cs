@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Univalle.Emergencias.Api.Data;
 using Univalle.Emergencias.Api.Incidents;
+using Univalle.Emergencias.Api.Identity;
 using Univalle.Emergencias.Api.Services;
 using Univalle.Emergencias.Contracts.Audit;
 using Univalle.Emergencias.Contracts.Common;
+using Univalle.Emergencias.Contracts.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,6 +57,10 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(conn
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IServerClock, SystemServerClock>();
 builder.Services.AddScoped<IAuditTrail, EfAuditTrail>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IIdentityContext, DatabaseIdentityContext>();
+builder.Services.AddScoped<SessionService>();
+builder.Services.AddScoped<Univalle.Emergencias.Contracts.Diana.IBrigadeUserDirectory, BrigadeUserDirectory>();
 
 // Módulos (cada dueño registra los suyos).
 Univalle.Emergencias.Api.Diana.DianaRegistration.AddDianaModules(builder.Services);
@@ -81,6 +87,13 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 app.MapControllers();
+
+if (args.Contains("--bootstrap-siso", StringComparer.Ordinal)
+    || args.Contains("--seed-development-users", StringComparer.Ordinal))
+{
+    await AccountBootstrapper.RunAsync(app, args);
+    return;
+}
 
 app.Run();
 

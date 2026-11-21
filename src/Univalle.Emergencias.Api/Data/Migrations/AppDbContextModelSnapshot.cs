@@ -245,6 +245,109 @@ namespace Univalle.Emergencias.Api.Data.Migrations
                     b.ToTable("SupportContacts", (string)null);
                 });
 
+            modelBuilder.Entity("Univalle.Emergencias.Api.Identity.UserAccount", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("DeactivatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("NormalizedEmail")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
+
+                    b.Property<string>("NormalizedUsername")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<byte[]>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varbinary(32)");
+
+                    b.Property<int>("PasswordIterations")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("PasswordSalt")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varbinary(16)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("NormalizedEmail")
+                        .IsUnique();
+
+                    b.HasIndex("NormalizedUsername")
+                        .IsUnique();
+
+                    b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Identity.UserSession", b =>
+                {
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("ExpiresAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("RevokedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("SessionId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "ExpiresAtUtc");
+
+                    b.ToTable("UserSessions", (string)null);
+                });
+
             modelBuilder.Entity("Univalle.Emergencias.Api.Incidents.Incident", b =>
                 {
                     b.Property<Guid>("IncidentId")
@@ -409,6 +512,17 @@ namespace Univalle.Emergencias.Api.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Univalle.Emergencias.Api.Identity.UserSession", b =>
+                {
+                    b.HasOne("Univalle.Emergencias.Api.Identity.UserAccount", "User")
+                        .WithMany("Sessions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Univalle.Emergencias.Api.Incidents.IncidentReport", b =>
                 {
                     b.HasOne("Univalle.Emergencias.Api.Incidents.Incident", "Incident")
@@ -423,6 +537,11 @@ namespace Univalle.Emergencias.Api.Data.Migrations
             modelBuilder.Entity("Univalle.Emergencias.Api.Diana.Brigade", b =>
                 {
                     b.Navigation("Members");
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Identity.UserAccount", b =>
+                {
+                    b.Navigation("Sessions");
                 });
 
             modelBuilder.Entity("Univalle.Emergencias.Api.Incidents.Incident", b =>
