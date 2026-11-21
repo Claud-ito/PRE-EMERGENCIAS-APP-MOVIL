@@ -72,6 +72,8 @@ Resultado al 2026-11-20: 17/17 correctas.
 
 ## 5. Sustitutos de desarrollo (temporales)
 
+**Actualización SA-01/SA-02:** la API y la app ya usan cuentas y tokens reales. `DevHeaderIdentityContext` no se registra porque `IIdentityContext` real tiene prioridad; `X-Dev-User-Id`, `X-Dev-Role` y `DevSessionSettings` dejaron de ser el modo de acceso. El catálogo de ubicaciones de Diana también es real. Las sustituciones de turno y avisos continúan solo en Development hasta integrar JO-01/JO-02.
+
 Solo se registran con `ASPNETCORE_ENVIRONMENT=Development` y `IncidentDevSubstitutes:Enabled=true` (valor por defecto). Usan `TryAdd`, así que cuando SA-01, SA-02 o JO-01/02 registren sus implementaciones reales, esas tienen prioridad.
 
 | Sustituto | Reemplaza a | Comportamiento |
@@ -81,7 +83,7 @@ Solo se registran con `ASPNETCORE_ENVIRONMENT=Development` y `IncidentDevSubstit
 | `DevTurnResolver` | JO-01 | Encargado fijo tomado de `IncidentDevSubstitutes:CoordinatorUserId`; sin ese valor no hay cobertura. |
 | `LoggingNotificationSender` | JO-02 | Solo escribe `[DEV] Aviso ...` en el log. |
 
-En la app, la identidad de ensayo (`DevSessionSettings`) y sus cabeceras solo existen en compilación DEBUG. Se eliminan al integrar SA-01.
+La app envía el token de la sesión real al módulo de incidentes.
 
 ## 6. Pendientes y coordinación con el equipo
 

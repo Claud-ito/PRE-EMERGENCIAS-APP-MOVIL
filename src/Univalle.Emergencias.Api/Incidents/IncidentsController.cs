@@ -7,7 +7,7 @@ namespace Univalle.Emergencias.Api.Incidents;
 
 /// <summary>
 /// Reporte (RF07), unión de aportes (RF08) y seguimiento mínimo del coordinador.
-/// La autorización se verifica aquí con IIdentityContext; al publicarse SA-01 se sustituye por sus políticas comunes.
+/// La autorización usa IIdentityContext de SA-01 y los permisos comunes en cada solicitud.
 /// </summary>
 [ApiController]
 [Route(IncidentRoutes.Base)]

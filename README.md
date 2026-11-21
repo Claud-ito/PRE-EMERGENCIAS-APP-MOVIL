@@ -1,6 +1,6 @@
-# PRE-EMERGENCIAS-APP-MOVIL — base SA-00
+# PRE-EMERGENCIAS-APP-MOVIL
 
-Esta entrega prepara la solución común para que el equipo integre sus módulos. Incluye la app .NET MAUI, una API ASP.NET Core, contratos compartidos, persistencia SQL Server de auditoría y pruebas. La pantalla inicial permite configurar la dirección de la API y consultar su hora; el acceso de usuarios y los flujos de incidentes se incorporan en tareas posteriores.
+La solución incluye la app .NET MAUI, una API ASP.NET Core, contratos compartidos y persistencia SQL Server. SA-01 a SA-03 incorporan acceso con cuentas reales, gestión de usuarios y buzón de sugerencias para incidentes cerrados. Los módulos de ubicaciones, brigadas, fichas e incidentes se integran en esta base.
 
 ## Requisitos
 
@@ -97,7 +97,8 @@ Las pruebas verifican el reloj sustituible sin esperar seis horas y la persisten
 | `src/Univalle.Emergencias.Contracts/` | Convenciones e interfaces compartidas. |
 | `tests/Univalle.Emergencias.Tests/` | Pruebas de servicios comunes. |
 | `docs/SA00_Integracion.md` | Reglas de integración y responsabilidades de los contratos. |
+| `docs/SA01_SA03_Integracion.md` | Cuentas, permisos, buzón, datos de ensayo y verificación. |
 
-Las consultas `/api/v1/system/time` y `/api/v1/system/health` son públicas para diagnóstico. El resto de rutas se agregará en tareas posteriores con autorización en la API. Los datos y endpoints de usuarios, ubicaciones, incidentes, turnos y avisos no se implementan como funcionalidad productiva en SA-00.
+Las consultas `/api/v1/system/time` y `/api/v1/system/health` son públicas para diagnóstico. Los módulos operativos usan la sesión y los permisos de la API; consulta la guía de integración para preparar la primera cuenta y los seis roles de ensayo.
 
 Fuentes de las excepciones de red de desarrollo: [Android Network Security Configuration](https://developer.android.com/privacy-and-security/security-config) y [Apple NSAllowsLocalNetworking](https://developer.apple.com/documentation/bundleresources/information-property-list/nsapptransportsecurity/nsallowslocalnetworking).

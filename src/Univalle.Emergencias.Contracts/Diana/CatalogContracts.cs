@@ -3,18 +3,18 @@ using Univalle.Emergencias.Contracts.Identity;
 
 namespace Univalle.Emergencias.Contracts.Diana;
 
-public sealed record ModuleInput([property: Required, StringLength(30)] string Code,
-    [property: Required, StringLength(150)] string Name);
-public sealed record FloorInput([property: Required, StringLength(100)] string Name);
+public sealed record ModuleInput([param: Required, StringLength(30)] string Code,
+    [param: Required, StringLength(150)] string Name);
+public sealed record FloorInput([param: Required, StringLength(100)] string Name);
 public enum SupportContactKind { Consultorio, CentroMedico, Bomberos }
 public sealed record SupportContactInput(
-    [property: Required, StringLength(150)] string Name,
+    [param: Required, StringLength(150)] string Name,
     SupportContactKind Kind,
-    [property: Required, StringLength(40)] string Phone);
+    [param: Required, StringLength(40)] string Phone);
 public sealed record SupportContactView(Guid ContactId, string Name, SupportContactKind Kind,
     string Phone, bool IsActive);
-public sealed record BrigadeMemberInput(Guid UserId, [property: Required] string Specialty);
-public sealed record BrigadeInput([property: Required, StringLength(150)] string Name,
+public sealed record BrigadeMemberInput(Guid UserId, [param: Required] string Specialty);
+public sealed record BrigadeInput([param: Required, StringLength(150)] string Name,
     Guid LeaderUserId, IReadOnlyList<BrigadeMemberInput> Members, IReadOnlyList<Guid> ModuleIds);
 public sealed record BrigadeView(Guid BrigadeId, string Name, Guid LeaderUserId, bool IsActive,
     IReadOnlyList<BrigadeMemberInput> Members, IReadOnlyList<Guid> ModuleIds);

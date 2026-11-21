@@ -20,6 +20,8 @@ La ficha base solo almacena ID, incidente, médico y fecha del servidor. No iden
 
 ### Identidad y cuentas de Said
 
+**Actualización SA-01/SA-02:** `IIdentityContext`, `IBrigadeUserDirectory` e `IDianaMobileSession` ya están conectados con usuarios reales. Las indicaciones siguientes describen los contratos originales; el acceso actual se explica en `SA01_SA03_Integracion.md`. El recorrido móvil e iOS todavía requiere verificación en dispositivo o simulador.
+
 - Registrar la implementación real de `IIdentityContext`. El filtro de Diana comprueba cuenta activa, rol y permiso en cada solicitud. Sin servicio devuelve 503, sin sesión 401, sin autorización 403.
 - SySO y Mantenimiento gestionan catálogos sin consultar el turno. Médico con `injuries.record` consulta/crea fichas y selecciona el caso; SySO y Mantenimiento no reciben acceso clínico por su rol.
 - Implementar `IBrigadeUserDirectory` sobre las cuentas reales de SA-02 y registrarlo con ámbito `scoped`. No se mantienen cuentas paralelas. Líder e integrantes deben estar activos y tener rol compatible.
