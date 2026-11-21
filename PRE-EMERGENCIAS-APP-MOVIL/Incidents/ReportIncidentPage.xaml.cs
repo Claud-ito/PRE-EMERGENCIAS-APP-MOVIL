@@ -10,7 +10,6 @@ namespace PRE_EMERGENCIAS_APP_MOVIL.Incidents;
 public partial class ReportIncidentPage : ContentPage
 {
     private readonly IncidentApiClient _api;
-    private readonly DevSessionSettings _devSession;
 
     /// <summary>
     /// Identificador del envío. Se conserva si la red falla (reintentar no duplica el aporte)
@@ -21,20 +20,15 @@ public partial class ReportIncidentPage : ContentPage
     private bool _optionsLoaded;
     private bool _busy;
 
-    public ReportIncidentPage(IncidentApiClient api, DevSessionSettings devSession)
+    public ReportIncidentPage(IncidentApiClient api)
     {
         InitializeComponent();
         _api = api;
-        _devSession = devSession;
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-#if DEBUG
-        DevSessionLabel.IsVisible = true;
-        DevSessionLabel.Text = $"Sesión de ensayo: {_devSession.Role} · {_devSession.UserId.ToString()[..8]}";
-#endif
         if (!_optionsLoaded)
         {
             await LoadOptionsAsync();

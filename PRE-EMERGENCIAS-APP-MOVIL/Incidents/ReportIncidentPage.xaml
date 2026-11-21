@@ -112,12 +112,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <Label
-                x:Name="DevSessionLabel"
-                FontSize="12"
-                TextColor="{StaticResource Gray500}"
-                HorizontalTextAlignment="Center"
-                IsVisible="False" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

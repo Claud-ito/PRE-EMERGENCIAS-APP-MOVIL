@@ -8,6 +8,7 @@ public abstract class DianaPage : ContentPage
     protected readonly IDianaMobileSession Session;
     protected readonly VerticalStackLayout Form = new() { Spacing = 14, IsVisible = false };
     protected readonly Label Status = new() { TextColor = Colors.DarkRed };
+    private readonly ActivityIndicator activity = new() { IsVisible = false };
     private readonly string permission;
     private readonly bool physician;
     private bool running;
@@ -15,7 +16,7 @@ public abstract class DianaPage : ContentPage
         Api = api; Session = session; Title = title; this.permission = permission; this.physician = physician;
         var content = new VerticalStackLayout { Padding = 20, Spacing = 16 };
         content.Add(new Label { Text = title, FontSize = 24, FontAttributes = FontAttributes.Bold });
-        content.Add(Status); content.Add(Form); Content = new ScrollView { Content = content };
+        content.Add(Status); content.Add(activity); content.Add(Form); Content = new ScrollView { Content = content };
     }
     protected override async void OnAppearing() {
         base.OnAppearing();
@@ -33,12 +34,12 @@ public abstract class DianaPage : ContentPage
     protected abstract Task LoadAsync();
     protected async Task Run(Func<Task> work) {
         if (running) return;
-        running = true; Form.IsEnabled = false; IsBusy = true; Status.Text = "";
+        running = true; Form.IsEnabled = false; activity.IsVisible = true; activity.IsRunning = true; Status.Text = "";
         try { await work(); }
         catch (HttpRequestException) { Status.Text = "No se pudo conectar con la API. Revisa la dirección y tu conexión."; }
         catch (TaskCanceledException) { Status.Text = "La solicitud tardó demasiado. Actualiza la lista antes de volver a guardar."; }
         catch (Exception ex) when (ex is InvalidOperationException or System.Text.Json.JsonException) { Status.Text = ex.Message; }
-        finally { IsBusy = false; Form.IsEnabled = true; running = false; }
+        finally { activity.IsRunning = false; activity.IsVisible = false; Form.IsEnabled = true; running = false; }
     }
     protected Button Action(string text, Func<Task> action) {
         var button = new Button { Text = text };

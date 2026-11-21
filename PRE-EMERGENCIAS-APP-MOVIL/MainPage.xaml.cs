@@ -1,4 +1,5 @@
 using System.Net.Http;
+using PRE_EMERGENCIAS_APP_MOVIL.Identity;
 using PRE_EMERGENCIAS_APP_MOVIL.Services;
 
 namespace PRE_EMERGENCIAS_APP_MOVIL;
@@ -7,15 +8,14 @@ public partial class MainPage : ContentPage
 {
     private readonly IApiEndpointSettings _settings;
     private readonly ApiClockClient _clockClient;
+    private readonly MobileSession _session;
 
-    public MainPage(IApiEndpointSettings settings, ApiClockClient clockClient)
+    public MainPage(IApiEndpointSettings settings, ApiClockClient clockClient, MobileSession session)
     {
         InitializeComponent();
-        var catalogs = new Button { Text = "Catálogos y atención" };
-        catalogs.Clicked += async (_, _) => await Shell.Current.GoToAsync("diana");
-        if (Content is ScrollView { Content: Layout layout }) layout.Children.Add(catalogs);
         _settings = settings;
         _clockClient = clockClient;
+        _session = session;
         ApiUrlEntry.Text = _settings.CurrentUrl;
         if (string.IsNullOrWhiteSpace(ApiUrlEntry.Text))
         {
@@ -27,7 +27,7 @@ public partial class MainPage : ContentPage
     {
         try
         {
-            StatusLabel.Text = _settings.TrySave(ApiUrlEntry.Text, out var error)
+            StatusLabel.Text = SaveEndpoint(out var error)
                 ? "Dirección guardada en este dispositivo."
                 : error;
         }
@@ -41,7 +41,7 @@ public partial class MainPage : ContentPage
     {
         try
         {
-            if (!_settings.TrySave(ApiUrlEntry.Text, out var error))
+            if (!SaveEndpoint(out var error))
             {
                 StatusLabel.Text = error;
                 return;
@@ -78,5 +78,14 @@ public partial class MainPage : ContentPage
             CheckButton.IsEnabled = true;
             SaveButton.IsEnabled = true;
         }
+    }
+
+    private bool SaveEndpoint(out string error)
+    {
+        var previous = _settings.CurrentUrl;
+        if (!_settings.TrySave(ApiUrlEntry.Text, out error)) return false;
+        if (!string.Equals(previous, _settings.CurrentUrl, StringComparison.OrdinalIgnoreCase))
+            _session.ClearLocal();
+        return true;
     }
 }

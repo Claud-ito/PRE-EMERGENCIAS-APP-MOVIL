@@ -10,20 +10,17 @@ namespace PRE_EMERGENCIAS_APP_MOVIL.Incidents;
 public partial class CoordinatedIncidentsPage : ContentPage
 {
     private readonly IncidentApiClient _api;
-    private readonly DevSessionSettings _devSession;
     private bool _loading;
 
-    public CoordinatedIncidentsPage(IncidentApiClient api, DevSessionSettings devSession)
+    public CoordinatedIncidentsPage(IncidentApiClient api)
     {
         InitializeComponent();
         _api = api;
-        _devSession = devSession;
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        UpdateDevSession();
         await LoadAsync();
     }
 
@@ -33,28 +30,6 @@ public partial class CoordinatedIncidentsPage : ContentPage
     {
         await LoadAsync();
         Refresher.IsRefreshing = false;
-    }
-
-    private async void OnUseCoordinatorClicked(object? sender, EventArgs e)
-    {
-        _devSession.UseTestCoordinator();
-        UpdateDevSession();
-        await LoadAsync();
-    }
-
-    private async void OnUseWitnessClicked(object? sender, EventArgs e)
-    {
-        _devSession.UseNewWitness();
-        UpdateDevSession();
-        await LoadAsync();
-    }
-
-    private void UpdateDevSession()
-    {
-#if DEBUG
-        DevSessionPanel.IsVisible = true;
-        DevSessionLabel.Text = $"Rol: {_devSession.Role} · Usuario: {_devSession.UserId.ToString()[..8]}";
-#endif
     }
 
     private async Task LoadAsync()

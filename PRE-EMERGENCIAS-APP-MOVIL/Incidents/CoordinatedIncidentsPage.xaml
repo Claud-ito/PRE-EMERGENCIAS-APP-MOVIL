@@ -18,14 +18,6 @@
                 <Label x:Name="StatusLabel" HorizontalTextAlignment="Center" />
                 <VerticalStackLayout x:Name="IncidentsLayout" Spacing="12" />
 
-                <Border x:Name="DevSessionPanel" Padding="12" IsVisible="False">
-                    <VerticalStackLayout Spacing="8">
-                        <Label Text="Sesión de ensayo (solo desarrollo, hasta SA-01)" FontAttributes="Bold" FontSize="13" />
-                        <Label x:Name="DevSessionLabel" FontSize="12" />
-                        <Button Text="Actuar como encargado de ensayo" Clicked="OnUseCoordinatorClicked" />
-                        <Button Text="Actuar como testigo nuevo" Clicked="OnUseWitnessClicked" />
-                    </VerticalStackLayout>
-                </Border>
             </VerticalStackLayout>
         </ScrollView>
     </RefreshView>

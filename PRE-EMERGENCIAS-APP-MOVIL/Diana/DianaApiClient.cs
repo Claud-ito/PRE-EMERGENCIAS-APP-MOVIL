@@ -1,12 +1,14 @@
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using PRE_EMERGENCIAS_APP_MOVIL.Services;
+using PRE_EMERGENCIAS_APP_MOVIL.Identity;
 using Univalle.Emergencias.Contracts.Identity;
 
 namespace PRE_EMERGENCIAS_APP_MOVIL.Diana;
 
-/// <summary>SA-01 conecta su sesión real y agrega su credencial al mensaje, sin roles enviados por el formulario.</summary>
+/// <summary>La sesión real agrega la credencial al mensaje, sin roles enviados por el formulario.</summary>
 public interface IDianaMobileSession
 {
     Task<AuthenticatedUser?> GetCurrentAsync();
@@ -17,7 +19,9 @@ public sealed class PendingDianaMobileSession : IDianaMobileSession
     public Task<AuthenticatedUser?> GetCurrentAsync() => Task.FromResult<AuthenticatedUser?>(null);
     public Task AuthorizeAsync(HttpRequestMessage request) => throw new InvalidOperationException("Inicia sesión para continuar.");
 }
-public sealed class DianaApiClient(HttpClient http, IApiEndpointSettings settings, IDianaMobileSession session)
+public sealed class DianaApiClient(
+    HttpClient http, IApiEndpointSettings settings,
+    IDianaMobileSession session, MobileSession mobileSession)
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) {
         Converters = { new JsonStringEnumConverter() }
@@ -38,6 +42,7 @@ public sealed class DianaApiClient(HttpClient http, IApiEndpointSettings setting
         await session.AuthorizeAsync(request);
         var response = await http.SendAsync(request);
         if (response.IsSuccessStatusCode) return response;
+        if (response.StatusCode == HttpStatusCode.Unauthorized) mobileSession.ClearLocal();
         string message = "No se pudo completar la operación.";
         try {
             using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());

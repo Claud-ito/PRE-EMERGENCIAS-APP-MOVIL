@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using PRE_EMERGENCIAS_APP_MOVIL.Identity;
 using Univalle.Emergencias.Contracts.Incidents;
 
 namespace PRE_EMERGENCIAS_APP_MOVIL.Services;
@@ -38,7 +39,7 @@ public sealed record ApiResult<T>(
 public sealed class IncidentApiClient(
     HttpClient httpClient,
     IApiEndpointSettings settings,
-    DevSessionSettings devSession)
+    MobileSession session)
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
     {
@@ -73,13 +74,9 @@ public sealed class IncidentApiClient(
             request.Content = JsonContent.Create(body, options: Json);
         }
 
-#if DEBUG
-        request.Headers.Add("X-Dev-User-Id", devSession.UserId.ToString());
-        request.Headers.Add("X-Dev-Role", devSession.Role.ToString());
-#endif
-
         try
         {
+            await session.AuthorizeAsync(request);
             using var response = await httpClient.SendAsync(request, cancellationToken);
             if (response.IsSuccessStatusCode)
             {
@@ -90,6 +87,8 @@ public sealed class IncidentApiClient(
             }
 
             var problem = await ReadProblemAsync(response, cancellationToken);
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+                session.ClearLocal();
             return response.StatusCode switch
             {
                 HttpStatusCode.Unauthorized => ApiResult<T>.Fail(
@@ -117,6 +116,10 @@ public sealed class IncidentApiClient(
         catch (JsonException)
         {
             return ApiResult<T>.Fail(ApiFailureKind.Unexpected, "La respuesta de la API no pudo procesarse.");
+        }
+        catch (InvalidOperationException)
+        {
+            return ApiResult<T>.Fail(ApiFailureKind.Unauthenticated, "Inicia sesión para continuar.");
         }
     }
 
