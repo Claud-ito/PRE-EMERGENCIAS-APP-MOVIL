@@ -67,6 +67,184 @@ namespace Univalle.Emergencias.Api.Data.Migrations
                     b.ToTable("AuditEntries", (string)null);
                 });
 
+            modelBuilder.Entity("Univalle.Emergencias.Api.Diana.Brigade", b =>
+                {
+                    b.Property<Guid>("BrigadeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("LeaderUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("BrigadeId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Brigades", (string)null);
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Diana.BrigadeMembership", b =>
+                {
+                    b.Property<Guid>("BrigadeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Specialty")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("BrigadeId", "UserId");
+
+                    b.ToTable("BrigadeMembers", (string)null);
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Diana.BrigadeModuleAssignment", b =>
+                {
+                    b.Property<Guid>("AssignmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BrigadeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("EndedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("LeaderUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("MembersJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ModuleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("StartedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("AssignmentId");
+
+                    b.HasIndex("BrigadeId");
+
+                    b.HasIndex("ModuleId")
+                        .IsUnique()
+                        .HasFilter("[EndedAtUtc] IS NULL");
+
+                    b.HasIndex("ModuleId", "StartedAtUtc");
+
+                    b.ToTable("BrigadeModuleAssignments", (string)null);
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Diana.InjuryRecord", b =>
+                {
+                    b.Property<Guid>("InjuryRecordId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("IncidentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PhysicianUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("InjuryRecordId");
+
+                    b.HasIndex("IncidentId");
+
+                    b.ToTable("InjuryRecords", (string)null);
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Diana.LocationFloor", b =>
+                {
+                    b.Property<Guid>("FloorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("ModuleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("FloorId");
+
+                    b.HasIndex("ModuleId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("LocationFloors", (string)null);
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Diana.LocationModule", b =>
+                {
+                    b.Property<Guid>("ModuleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("ModuleId");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("LocationModules", (string)null);
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Diana.SupportContact", b =>
+                {
+                    b.Property<Guid>("ContactId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.HasKey("ContactId");
+
+                    b.ToTable("SupportContacts", (string)null);
+                });
+
             modelBuilder.Entity("Univalle.Emergencias.Api.Incidents.Incident", b =>
                 {
                     b.Property<Guid>("IncidentId")
@@ -189,6 +367,48 @@ namespace Univalle.Emergencias.Api.Data.Migrations
                     b.ToTable("IncidentReports", (string)null);
                 });
 
+            modelBuilder.Entity("Univalle.Emergencias.Api.Diana.BrigadeMembership", b =>
+                {
+                    b.HasOne("Univalle.Emergencias.Api.Diana.Brigade", null)
+                        .WithMany("Members")
+                        .HasForeignKey("BrigadeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Diana.BrigadeModuleAssignment", b =>
+                {
+                    b.HasOne("Univalle.Emergencias.Api.Diana.Brigade", null)
+                        .WithMany()
+                        .HasForeignKey("BrigadeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Univalle.Emergencias.Api.Diana.LocationModule", null)
+                        .WithMany()
+                        .HasForeignKey("ModuleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Diana.InjuryRecord", b =>
+                {
+                    b.HasOne("Univalle.Emergencias.Api.Incidents.Incident", null)
+                        .WithMany()
+                        .HasForeignKey("IncidentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Diana.LocationFloor", b =>
+                {
+                    b.HasOne("Univalle.Emergencias.Api.Diana.LocationModule", null)
+                        .WithMany()
+                        .HasForeignKey("ModuleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Univalle.Emergencias.Api.Incidents.IncidentReport", b =>
                 {
                     b.HasOne("Univalle.Emergencias.Api.Incidents.Incident", "Incident")
@@ -198,6 +418,11 @@ namespace Univalle.Emergencias.Api.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Incident");
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Diana.Brigade", b =>
+                {
+                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("Univalle.Emergencias.Api.Incidents.Incident", b =>

@@ -23,6 +23,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ApiClockClient>();
         builder.Services.AddSingleton<DevSessionSettings>();
         builder.Services.AddSingleton<IncidentApiClient>();
+        PRE_EMERGENCIAS_APP_MOVIL.Diana.DianaMobileRegistration.AddDianaMobile(builder.Services);
         builder.Services.AddTransient<MainPage>();
         builder.Services.AddTransient<ReportIncidentPage>();
         builder.Services.AddTransient<CoordinatedIncidentsPage>();

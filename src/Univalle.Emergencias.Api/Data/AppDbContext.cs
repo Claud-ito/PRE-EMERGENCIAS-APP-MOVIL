@@ -14,6 +14,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         // Cada módulo mantiene sus IEntityTypeConfiguration en su carpeta (reparto, regla 10.3).
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
+        Univalle.Emergencias.Api.Diana.DianaModel.Configure(modelBuilder);
+
         modelBuilder.Entity<AuditEntry>(entity =>
         {
             entity.ToTable("AuditEntries");
