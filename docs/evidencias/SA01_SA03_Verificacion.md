@@ -14,3 +14,5 @@
 | Alta de catálogo integrado con sesión real | API HTTP, cuenta SySO de ensayo, módulo y piso en LocalDB | Aprobado después de corregir las anotaciones de validación de los contratos de Diana. |
 
 **Pendientes de integración:** recorrido funcional de MAUI en Android/iOS y compilación iOS en macOS; recepción real de avisos, coordinación por turno, AUTO y relevo. El remoto consultado el 20/11/2026 todavía contiene los contratos, pero no las implementaciones JO-01 a JO-04 de Jorge. Por eso no se declara aprobado el flujo SA-04 completo ni las medidas de entrega de avisos. Al llegar esos módulos, repetir pruebas de extremo a extremo y adjuntar evidencias de dispositivo y tiempos según el reparto.
+
+**Actualización 22/11/2026:** Jorge integró JO-01 a JO-04 después de esta verificación histórica. La revisión posterior está en `SA04_Verificacion.md`.

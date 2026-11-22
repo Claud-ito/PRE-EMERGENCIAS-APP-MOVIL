@@ -98,6 +98,7 @@ Las pruebas verifican el reloj sustituible sin esperar seis horas y la persisten
 | `tests/Univalle.Emergencias.Tests/` | Pruebas de servicios comunes. |
 | `docs/SA00_Integracion.md` | Reglas de integración y responsabilidades de los contratos. |
 | `docs/SA01_SA03_Integracion.md` | Cuentas, permisos, buzón, datos de ensayo y verificación. |
+| `docs/evidencias/SA04_Verificacion.md` | Estado de la integración, auditoría, pruebas y pendientes de aceptación. |
 
 Las consultas `/api/v1/system/time` y `/api/v1/system/health` son públicas para diagnóstico. Los módulos operativos usan la sesión y los permisos de la API; consulta la guía de integración para preparar la primera cuenta y los seis roles de ensayo.
 

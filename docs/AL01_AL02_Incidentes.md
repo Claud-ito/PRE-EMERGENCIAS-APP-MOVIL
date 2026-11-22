@@ -72,7 +72,7 @@ Resultado al 2026-11-20: 17/17 correctas.
 
 ## 5. Sustitutos de desarrollo (temporales)
 
-**Actualización SA-01/SA-02:** la API y la app ya usan cuentas y tokens reales. `DevHeaderIdentityContext` no se registra porque `IIdentityContext` real tiene prioridad; `X-Dev-User-Id`, `X-Dev-Role` y `DevSessionSettings` dejaron de ser el modo de acceso. El catálogo de ubicaciones de Diana también es real. Las sustituciones de turno y avisos continúan solo en Development hasta integrar JO-01/JO-02.
+**Actualización SA-04:** la API y la app ya usan cuentas y tokens reales, ubicaciones de Diana y turnos/avisos persistentes de Jorge. Aunque el código de sustituciones sigue disponible para desarrollo, `TryAdd` no lo selecciona porque los servicios reales se registran primero. `X-Dev-User-Id`, `X-Dev-Role` y `DevSessionSettings` no son el modo de acceso de la app actual.
 
 Solo se registran con `ASPNETCORE_ENVIRONMENT=Development` y `IncidentDevSubstitutes:Enabled=true` (valor por defecto). Usan `TryAdd`, así que cuando SA-01, SA-02 o JO-01/02 registren sus implementaciones reales, esas tienen prioridad.
 
