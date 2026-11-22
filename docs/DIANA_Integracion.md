@@ -4,7 +4,15 @@ Base remota revisada el 20/11/2026: `ecd0883f6ed49cbf41aa3d9ba94eed1e9144f33e`.
 Incluye el [PR #1 de Alejandro](https://github.com/Claud-ito/PRE-EMERGENCIAS-APP-MOVIL/pull/1), integrado el 20/11/2026 a las 14:24 de Bolivia. Al revisar no había entregas nuevas de Said ni Jorge.
 Se conserva el alcance asignado a Diana en `V1_Reparto_Trabajo_UNIVALLE_Hasta_Sprint_2.md`. Las especialidades quedaron confirmadas al recibir el contenido tabular de RF05: Primeros auxilios, Evacuación y Extinción de fuegos.
 
-## Entregas y dependencias
+## Estado después de SA-01 y SA-02
+
+`main` en `03d9000` ya incluye la entrega de Said y el PR #2 de Diana. `IIdentityContext` usa `DatabaseIdentityContext`; `IBrigadeUserDirectory` usa `BrigadeUserDirectory`; `IDianaMobileSession` usa el adaptador de `MobileSession` registrado antes de `AddDianaMobile()`. No hay que crear otro sistema de cuentas ni ampliar las cabeceras de desarrollo. Las instrucciones de implementación de esos adaptadores que aparecen más abajo ya están satisfechas por Said.
+
+`DianaIdentityIntegrationTests` verifica la integración por HTTP con sesiones y cuentas persistidas, los permisos de catálogos, el líder de dos módulos, las bajas, fichas del médico y revocación/vencimiento. Incluye una variante con SQL Server migrado. Estado y límites de la última verificación en `docs/DIANA_Entrega_Hoy.md`. Para repetir pruebas y compilaciones en Windows: `scripts/windows/Cerrar-Integracion-Diana.cmd`.
+
+El recorrido Android/iOS y la validación clínica externa continúan abiertos. La entrega de Said no resuelve automáticamente turno, avisos, AUTO ni relevo de Jorge.
+
+## Entregas y dependencias (registro inicial)
 
 | Tarea | Avance preparado | Pendiente |
 | --- | --- | --- |

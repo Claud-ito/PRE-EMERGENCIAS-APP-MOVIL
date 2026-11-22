@@ -1,5 +1,24 @@
 # Cierre de Diana hasta Sprint 2
 
+## Integración con Said sobre main 03d9000
+
+El PR #2 de Diana ya está unido a `main`. Said incorporó identidad, sesiones y usuarios reales: `DatabaseIdentityContext`, `BrigadeUserDirectory` y el adaptador MAUI `DianaMobileSession`. Este último se registra antes de `AddDianaMobile()`, de modo que se utiliza la sesión compartida y no el registro provisional. La navegación común muestra las operaciones según los permisos. **Said ya no es una dependencia de código pendiente de Diana.**
+
+Se añadieron pruebas HTTP de MVC con los servicios reales de identidad y directorio, sin sustituir cuentas por cabeceras X-Dev:
+
+- SySO y Mantenimiento operan módulos, pisos y contactos con cuentas separadas; otros roles reciben 403.
+- Una cuenta creada mediante SA-02 integra una brigada con dos módulos. La consulta devuelve el líder, nombres y especialidades; desactivarlo deja de devolverlo sin borrar las asignaciones anteriores.
+- El médico selecciona un incidente persistido y registra cero o varias fichas. La API obtiene médico y fecha de la sesión/reloj, ignorando valores falsificados del formulario. Los demás roles no acceden a las fichas.
+- Una sesión ausente, vencida, cerrada o revocada por desactivación recibe 401. Las cabeceras de desarrollo no reemplazan una sesión real.
+
+Las cuatro pruebas nuevas se aprobaron con SQLite y el pipeline MVC en memoria (34 pruebas aprobadas en esa ejecución). Los tres casos SQL anteriores fallaron al intentar abrir LocalDB desde el entorno de trabajo restringido: error 50/0x89c50118; no se atribuye ese fallo a las reglas funcionales. Después se agregó un quinto escenario que ejecuta brigadas y fichas con cuentas reales sobre SQL Server migrado. La suite actual contiene **38 pruebas**, incluidas cuatro dependientes de SQL Server; su repetición final queda preparada para la terminal Windows.
+
+La compilación de los cambios de pruebas terminó, pero la siguiente ejecución del testhost fue bloqueada por Control de aplicaciones de Windows (0x800711C7). No se desactiva esa protección ni se declara aprobada esa ejecución. La app de este clon tampoco tiene restaurados sus recursos de compilación (`NETSDK1004`). `scripts/windows/Cerrar-Integracion-Diana.cmd` repite pruebas y compilaciones Windows/Android desde la terminal del equipo y guarda resultados en `Resultados_Diana_Integracion` junto al repositorio.
+
+La evidencia de Said sobre Windows/Android está en `docs/evidencias/SA01_SA03_Verificacion.md`; es evidencia de su revisión, no una nueva prueba de dispositivo de Diana. Continúan pendientes el recorrido funcional de estas pantallas en Android/iOS y los campos clínicos/visibilidad que valide SySO. El reparto asigna a Diana el seguimiento de esa validación. Jorge sigue siendo responsable de turno, avisos, AUTO y relevo, que no se implementan en esta entrega.
+
+Las secciones posteriores conservan la evidencia anterior del 20/11/2026; las referencias a esperar a Said quedan superadas por esta integración.
+
 ## Qué está preparado sin implementar tareas de otros integrantes
 
 | RF | Implementación de Diana | Evidencia disponible | Dependencia restante |
