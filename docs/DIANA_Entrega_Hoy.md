@@ -17,6 +17,8 @@ La compilación de los cambios de pruebas terminó, pero la siguiente ejecución
 
 La compilación Windows/Android sigue pendiente: ambos pasos del script se detuvieron durante la restauración por **NETSDK1147: falta `maui-android`** en el equipo. No es una compilación aprobada ni demuestra un fallo del código de Diana. Instalar las cargas requeridas con `dotnet workload restore PRE-EMERGENCIAS-APP-MOVIL/PRE-EMERGENCIAS-APP-MOVIL.csproj` y repetir la compilación. Los informes están en `Resultados_Diana_Integracion` junto al repositorio.
 
+Diana ejecutó la restauración de cargas: la salida confirmó instalación correcta de `maui-android` y `maui-tizen`. El intento posterior de compilar desde el entorno restringido se detuvo al descargar paquetes NuGet con «Access to the path is denied»; no se cambia la protección del equipo ni se declara aprobada esa compilación. Para continuar desde CMD sin repetir las 38 pruebas aprobadas, ejecutar `scripts/windows/Compilar-Diana.cmd`. Actualiza `cierre_windows.txt` y `cierre_android.txt` para revisar los resultados reales.
+
 La evidencia de Said sobre Windows/Android está en `docs/evidencias/SA01_SA03_Verificacion.md`; es evidencia de su revisión, no una nueva prueba de dispositivo de Diana. Continúan pendientes el recorrido funcional de estas pantallas en Android/iOS y los campos clínicos/visibilidad que valide SySO. El reparto asigna a Diana el seguimiento de esa validación. Jorge sigue siendo responsable de turno, avisos, AUTO y relevo, que no se implementan en esta entrega.
 
 Las secciones posteriores conservan la evidencia anterior del 20/11/2026; las referencias a esperar a Said quedan superadas por esta integración.
