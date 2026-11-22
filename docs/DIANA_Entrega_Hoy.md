@@ -1,39 +1,42 @@
-# Cierre de Diana hasta Sprint 2
+# Entrega de Diana hasta Sprint 2
 
-## Qué está preparado sin implementar tareas de otros integrantes
+Fecha de verificación: 22/11/2026. Integración sobre `main` en `03d9000`, que incluye el PR #2 de Diana y la entrega de Said.
 
-| RF | Implementación de Diana | Evidencia disponible | Dependencia restante |
-| --- | --- | --- | --- |
-| RF04 | API y pantallas de módulos/pisos; bajas lógicas; catálogo consumido por incidentes. | Persistencia SQLite, validaciones de pertenencia y flujo con AL-01. | Inicio de sesión real y comprobación móvil. |
-| RF05 | Brigadas, tres especialidades confirmadas, integrantes, líderes, varios módulos; consulta visible de líder por módulo e historial. | Pruebas de alta, cambio de líder/módulos, desactivación, cuenta inactiva, especialidad inválida y módulo duplicado. | Directorio de usuarios SA-02, sesión SA-01 y comprobación móvil. |
-| RF06 | Consultorio, centros médicos y bomberos; altas, edición y desactivación conservando referencias. | Persistencia y baja lógica comprobadas. | Sesión real y comprobación móvil. |
-| RF10 | Fichas base por incidente real; FK; cero o varias fichas; selección mínima del caso por Médico. | Integración con AL-01, rechazo de fichas huérfanas y permisos. | Sesión Médico; campos y visibilidad clínica de SySO; comprobación móvil. |
+## Resultado
 
-Las cuentas de ensayo de las pruebas están únicamente en el proyecto de pruebas. No se instala otro sistema de usuarios ni se amplían permisos X-Dev en la API o en MAUI.
+La sesión compartida de Said y su directorio de cuentas ya están conectados a los módulos de Diana. No se requiere otra implementación de identidad ni cuentas paralelas.
 
-## Comprobación aprobada con SQL Server real
+| Comprobación | Resultado verificado |
+| --- | --- |
+| Suite completa con SQL Server LocalDB | 38 ejecutadas, 38 aprobadas, 0 fallidas y 0 omitidas. |
+| MAUI para Windows | Compilación correcta, 0 errores y 0 advertencias. |
+| MAUI para Android | Compilación correcta, 0 errores y 0 advertencias, usando JDK 21 y SDK API 36. |
+| Recorrido funcional en dispositivos Android/iOS | Pendiente; la compilación no sustituye la comprobación de interfaz. |
 
-En Windows con LocalDB y las dependencias restauradas, abrir `scripts/windows/Verificar-Diana.cmd`.
-Ejecuta las pruebas habituales con `UNIVALLE_TEST_SQLSERVER` apuntando a `(localdb)\MSSQLLocalDB`.
-Las pruebas SQL crean y eliminan exclusivamente sus bases temporales, con nombres propios de ensayo; no usan la base de desarrollo del proyecto.
-El resultado se escribe en la carpeta `Resultados_Diana_SQLServer`, junto al repositorio: `salida.txt` y `Diana_SQLServer.trx`.
-Un error de LocalDB o del testhost debe resolverse antes de declarar esta comprobación aprobada.
+Se revisaron los informes generados en la terminal de Diana: `Cierre_Diana_Said.trx`, `cierre_sql.txt`, `cierre_windows.txt` y `cierre_android.txt`, guardados en `Resultados_Diana_Integracion` junto al repositorio. Son resultados de este clon; no se presentan las capturas anteriores de Alejandro o la evidencia de Said como pruebas nuevas de las pantallas de Diana.
 
-Resultado del 20/11/2026: Diana ejecutó el script en su terminal Windows. Se revisaron `salida.txt` y los contadores de `Diana_SQLServer.trx`: **27 pruebas ejecutadas, 27 aprobadas, 0 errores y 0 omitidas**, incluyendo los tres escenarios de SQL Server. La ejecución habitual de `dotnet test` y las pruebas con LocalDB quedan verificadas.
+## Alcance entregado
 
-## Verificación disponible
+| Tarea | Implementación y comprobación |
+| --- | --- |
+| DI-01 / RF04 | Módulos y pisos en API y MAUI, pertenencia, bajas lógicas, referencias históricas y catálogo real consumido por los incidentes. SySO y Mantenimiento usan cuentas distintas y sus permisos reales. |
+| DI-02 / RF05 | Brigadas, tres especialidades confirmadas, integrantes, líderes y varios módulos por brigada. Consulta del líder, nombres y especialidades por módulo; historial conservado. Directorio de cuentas de SA-02 integrado. |
+| DI-03 / RF06 | Altas, consulta, modificación y baja lógica de contactos del consultorio, centros médicos y bomberos. No incluye llamadas ni derivaciones del Sprint 3. |
+| DI-04 / RF10 | Fichas base relacionadas con incidentes persistidos; cero o varias fichas por caso, creación posterior a atención/evaluación, médico y fecha tomados del servidor, acceso restringido al Médico. |
+| DI-05 | Pruebas de integración con identidad, directorio e incidentes reales; falta incorporar lo clínico cuando SySO lo valide y completar la evidencia de dispositivos. |
 
-- Compilación de API, contratos y pruebas sin errores ni advertencias con los paquetes reales 10.0.15.
-- 24 escenarios Fact ejecutados directamente y aprobados con aserciones xUnit/SQLite.
-- Posteriormente, 27 pruebas aprobadas mediante `dotnet test` en la terminal de Diana, incluidas dos de concurrencia de Alejandro y una de migración/brigadas/historial de Diana con SQL Server LocalDB.
-- Las pruebas de interfaz en Android/iOS siguen pendientes y requieren la integración de sesión real.
+Las pruebas nuevas ejecutan el pipeline MVC con `DatabaseIdentityContext`, `SessionService`, `BrigadeUserDirectory`, `EfIncidentReader` y las operaciones de Diana. Verifican permisos de los seis roles, bajas de cuentas, sesiones vencidas/cerradas/revocadas, rechazo de cabeceras X-Dev como identidad, brigadas en dos módulos y fichas sin aceptar médico ni fecha falsificados. Una variante repite brigadas y fichas sobre SQL Server migrado; cada prueba SQL usa una base temporal propia.
 
-## Qué debe probarse al llegar Said
+## Cómo repetir las comprobaciones
 
-1. SySO y Mantenimiento entran con cuentas distintas y pueden operar catálogos sin depender del turno.
-2. Asignar usuarios reales a una brigada y dos módulos; consultar el líder desde cada módulo.
-3. Cambiar líder, desactivar una cuenta y revisar que se conserve el historial sin devolver un líder inactivo.
-4. Médico consulta un incidente y crea varias fichas base. Los encargados no reciben acceso a fichas por su rol.
-5. Probar estas acciones en Android/iOS con la API y SQL Server de pruebas.
+- `scripts/windows/Verificar-Diana.cmd`: suite completa con SQL Server LocalDB; crea bases temporales de ensayo.
+- `scripts/windows/Compilar-Diana.cmd`: compilación Windows y Android con las herramientas configuradas en el equipo.
+- `scripts/windows/Preparar-Android-Diana.cmd [carpetaJdk21]`: prepara dependencias y compila Android. Usa `JAVA_HOME` o el JDK portable de la carpeta de trabajo si no se proporciona una ruta. La opción `--aceptar-licencias [carpetaJdk21]` solo se usa después de que quien ejecuta el comando revise y acepte la licencia del SDK.
 
-La plantilla clínica y la visibilidad para encargados continúan explícitamente pendientes en el Excel. La integración de AUTO pertenece a Jorge. Esos pendientes no se presentan como terminados por completar el código de Diana.
+La compilación Android verificada utilizó Microsoft OpenJDK 21.0.13.1, cuyo ZIP oficial se contrastó con su SHA-256 publicado. No se guarda el JDK en Git ni se cambia el Java global del equipo. La descarga de herramientas y la aceptación de licencia se realizaron de forma explícita para preparar la compilación.
+
+## Pendientes explícitos
+
+- Recorrer las pantallas con las cuentas reales en Android/iOS. Alejandro coordina la comprobación iOS desde macOS; Diana corrige cualquier defecto de su módulo que se encuentre.
+- SySO debe definir campos e informe clínico, visibilidad para encargados y contingencia ante ausencia del médico. Según el reparto, Diana da seguimiento a esa validación. RF10 clínico no se declara completamente validado ni se inventan campos.
+- Turnos, recepción de avisos, AUTO y relevo pertenecen a Jorge. La consulta real de líder de Diana está disponible; esta entrega no implementa esos servicios ajenos ni valida el flujo completo del equipo.
