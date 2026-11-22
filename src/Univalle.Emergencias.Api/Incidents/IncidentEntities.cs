@@ -33,6 +33,7 @@ public sealed class Incident
 
     /// <summary>Identidad persistente de la alerta inicial; los reintentos reutilizan este valor.</summary>
     public Guid InitialAlertEventId { get; set; }
+    public DateTime? AutoDueAtUtc { get; set; }
     public Guid? InitialAlertRecipientUserId { get; set; }
     public string InitialAlertState { get; set; } = InitialAlertStates.Pending;
     public string? InitialAlertDeliveryStatus { get; set; }

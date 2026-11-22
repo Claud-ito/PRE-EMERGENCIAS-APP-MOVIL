@@ -14,6 +14,12 @@ public partial class App : Application
         _services = services;
     }
 
-    protected override Window CreateWindow(IActivationState? activationState) =>
-        new(_services.GetRequiredService<AppShell>());
+    protected override Window CreateWindow(IActivationState? activationState)
+    {
+        var shell = _services.GetRequiredService<AppShell>();
+        var window = new Window(shell);
+        window.Activated += (_, _) => shell.SetWindowActive(true);
+        window.Deactivated += (_, _) => shell.SetWindowActive(false);
+        return window;
+    }
 }

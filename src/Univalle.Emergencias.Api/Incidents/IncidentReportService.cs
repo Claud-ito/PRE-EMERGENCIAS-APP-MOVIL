@@ -136,6 +136,17 @@ public sealed class IncidentReportService(
                 InitialAlertState = coverage is null ? InitialAlertStates.NoCoverage : InitialAlertStates.Pending,
                 ConcurrencyStamp = Guid.NewGuid()
             };
+            if (coverage is not null)
+            {
+                // Mantener la lectura de la preferencia hasta insertar el caso. Apagar AUTO
+                // al mismo tiempo debe poder cancelar también este plazo.
+                IQueryable<Coordination.AutoPreference> preferences = db.AutoPreferences;
+                if (db.Database.IsSqlServer())
+                    preferences = db.AutoPreferences.FromSqlInterpolated(
+                        $"SELECT * FROM [AutoPreferences] WITH (HOLDLOCK) WHERE [CoordinatorUserId] = {coverage.CoordinatorUserId}");
+                if (await preferences.AnyAsync(x => x.CoordinatorUserId == coverage.CoordinatorUserId && x.Enabled, cancellationToken))
+                    incident.AutoDueAtUtc = now.UtcDateTime.AddSeconds(120);
+            }
             db.Incidents.Add(incident);
         }
 
