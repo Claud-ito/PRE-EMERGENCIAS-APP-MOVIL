@@ -4,6 +4,10 @@ Fecha de verificación: 22/11/2026. Integración sobre `main` en `03d9000`, que 
 
 ## Resultado
 
+Actualización por instrucción del jefe comunicada por Diana el 22/11/2026: el pendiente de SySO se resuelve para esta entrega mediante la **plantilla ficticia SYSO-ENSAYO-v1**, formulario, guardado e informe. Está documentada en `DIANA_Plantilla_Clinica_Prueba.md`. La visibilidad provisional es exclusiva del Médico y, sin Médico, el caso continúa sin exigir una ficha ni suplantar su cuenta. Las comprobaciones de dispositivos y con Jorge se dejan para otra fecha. Esto no equivale a aprobación clínica de SySO.
+
+La modificación añade una columna opcional mediante `20261122191445_DianaTestClinicalDraft`; conserva las fichas anteriores. Las cifras siguientes corresponden a la revisión anterior. En la revisión de esta plantilla se ejecutaron **36 pruebas aprobadas y 5 SQL omitidas** en el entorno de trabajo, sin fallos; no se atribuyen a esta versión los 38 resultados SQL anteriores.
+
 La sesión compartida de Said y su directorio de cuentas ya están conectados a los módulos de Diana. No se requiere otra implementación de identidad ni cuentas paralelas.
 
 | Comprobación | Resultado verificado |
@@ -23,7 +27,7 @@ Se revisaron los informes generados en la terminal de Diana: `Cierre_Diana_Said.
 | DI-02 / RF05 | Brigadas, tres especialidades confirmadas, integrantes, líderes y varios módulos por brigada. Consulta del líder, nombres y especialidades por módulo; historial conservado. Directorio de cuentas de SA-02 integrado. |
 | DI-03 / RF06 | Altas, consulta, modificación y baja lógica de contactos del consultorio, centros médicos y bomberos. No incluye llamadas ni derivaciones del Sprint 3. |
 | DI-04 / RF10 | Fichas base relacionadas con incidentes persistidos; cero o varias fichas por caso, creación posterior a atención/evaluación, médico y fecha tomados del servidor, acceso restringido al Médico. |
-| DI-05 | Pruebas de integración con identidad, directorio e incidentes reales; falta incorporar lo clínico cuando SySO lo valide y completar la evidencia de dispositivos. |
+| DI-05 | Plantilla e informe clínico con datos ficticios autorizados por el jefe; pruebas de permisos y compatibilidad con fichas base. Validación clínica real y recorridos de dispositivos diferidos. |
 
 Las pruebas nuevas ejecutan el pipeline MVC con `DatabaseIdentityContext`, `SessionService`, `BrigadeUserDirectory`, `EfIncidentReader` y las operaciones de Diana. Verifican permisos de los seis roles, bajas de cuentas, sesiones vencidas/cerradas/revocadas, rechazo de cabeceras X-Dev como identidad, brigadas en dos módulos y fichas sin aceptar médico ni fecha falsificados. Una variante repite brigadas y fichas sobre SQL Server migrado; cada prueba SQL usa una base temporal propia.
 
