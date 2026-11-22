@@ -22,6 +22,75 @@ namespace Univalle.Emergencias.Api.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Univalle.Emergencias.Api.Coordination.AutoPreference", b =>
+                {
+                    b.Property<Guid>("CoordinatorUserId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("bit");
+
+                    b.HasKey("CoordinatorUserId");
+
+                    b.ToTable("AutoPreferences");
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Coordination.Callout", b =>
+                {
+                    b.Property<Guid>("IncidentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<DateTimeOffset>("OccurredAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("RecipientUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("SenderUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("IncidentId");
+
+                    b.ToTable("Callouts");
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Coordination.Handoff", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("AcceptedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("FromUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("IncidentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("ProposedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("ToUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IncidentId")
+                        .IsUnique()
+                        .HasFilter("[AcceptedAtUtc] IS NULL");
+
+                    b.ToTable("Handoffs");
+                });
+
             modelBuilder.Entity("Univalle.Emergencias.Api.Data.AuditEntry", b =>
                 {
                     b.Property<Guid>("AuditEntryId")
@@ -353,6 +422,9 @@ namespace Univalle.Emergencias.Api.Data.Migrations
                     b.Property<Guid>("IncidentId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("AutoDueAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTimeOffset?>("ClosedAtUtc")
                         .HasColumnType("datetimeoffset");
 
@@ -404,6 +476,9 @@ namespace Univalle.Emergencias.Api.Data.Migrations
                         .HasColumnType("nvarchar(32)");
 
                     b.HasKey("IncidentId");
+
+                    b.HasIndex("AutoDueAtUtc")
+                        .HasFilter("[AutoDueAtUtc] IS NOT NULL");
 
                     b.HasIndex("InitialAlertEventId")
                         .IsUnique();
@@ -468,6 +543,106 @@ namespace Univalle.Emergencias.Api.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("IncidentReports", (string)null);
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Models.ScheduleException", b =>
+                {
+                    b.Property<Guid>("ScheduleExceptionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CoordinatorUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly?>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<TimeOnly?>("StartTime")
+                        .HasColumnType("time");
+
+                    b.HasKey("ScheduleExceptionId");
+
+                    b.HasIndex("CoordinatorUserId", "Date");
+
+                    b.ToTable("ScheduleExceptions", (string)null);
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Models.WorkSchedule", b =>
+                {
+                    b.Property<Guid>("WorkScheduleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CoordinatorUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time");
+
+                    b.HasKey("WorkScheduleId");
+
+                    b.HasIndex("CoordinatorUserId", "DayOfWeek");
+
+                    b.ToTable("WorkSchedules", (string)null);
+                });
+
+            modelBuilder.Entity("Univalle.Emergencias.Api.Notifications.NotificationEntry", b =>
+                {
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("DeliveredAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeliveryStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<Guid>("IncidentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("ReadAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("RecipientUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("RegisteredAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.HasKey("EventId");
+
+                    b.HasIndex("RecipientUserId", "RegisteredAtUtc");
+
+                    b.ToTable("NotificationEntries", (string)null);
                 });
 
             modelBuilder.Entity("Univalle.Emergencias.Api.Suggestions.IncidentSuggestion", b =>

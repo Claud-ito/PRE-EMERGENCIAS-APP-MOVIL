@@ -1,12 +1,10 @@
 
 using Microsoft.EntityFrameworkCore;
-<<<<<<< Updated upstream
 using Univalle.Emergencias.Api.Incidents;
 using Univalle.Emergencias.Api.Identity;
 using Univalle.Emergencias.Api.Suggestions;
-=======
 using Univalle.Emergencias.Api.Models;
->>>>>>> Stashed changes
+using Univalle.Emergencias.Api.Notifications;
 
 namespace Univalle.Emergencias.Api.Data;
 
@@ -14,36 +12,82 @@ public sealed class AppDbContext(
     DbContextOptions<AppDbContext> options)
     : DbContext(options)
 {
-<<<<<<< Updated upstream
-    public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
-    public DbSet<Incident> Incidents => Set<Incident>();
-    public DbSet<IncidentReport> IncidentReports => Set<IncidentReport>();
-    public DbSet<UserAccount> Users => Set<UserAccount>();
-    public DbSet<UserSession> UserSessions => Set<UserSession>();
-    public DbSet<IncidentSuggestion> IncidentSuggestions => Set<IncidentSuggestion>();
+    // ==========================================
+    // AUDITORIA - SAID
+    // ==========================================
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        // Cada módulo mantiene sus IEntityTypeConfiguration en su carpeta (reparto, regla 10.3).
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
-
-        Univalle.Emergencias.Api.Diana.DianaModel.Configure(modelBuilder);
-
-=======
     public DbSet<AuditEntry> AuditEntries =>
         Set<AuditEntry>();
 
-    // Modulo de turnos - Jorge
+    // ==========================================
+    // INCIDENTES - ALEJANDRO
+    // ==========================================
+
+    public DbSet<Incident> Incidents =>
+        Set<Incident>();
+
+    public DbSet<IncidentReport> IncidentReports =>
+        Set<IncidentReport>();
+
+    // ==========================================
+    // USUARIOS Y AUTENTICACION - SAID
+    // ==========================================
+
+    public DbSet<UserAccount> Users =>
+        Set<UserAccount>();
+
+    public DbSet<UserSession> UserSessions =>
+        Set<UserSession>();
+
+    // ==========================================
+    // BUZON DE SUGERENCIAS
+    // ==========================================
+
+    public DbSet<IncidentSuggestion> IncidentSuggestions =>
+        Set<IncidentSuggestion>();
+
+    // ==========================================
+    // TURNOS - JORGE
+    // ==========================================
+
     public DbSet<WorkSchedule> WorkSchedules =>
         Set<WorkSchedule>();
 
     public DbSet<ScheduleException> ScheduleExceptions =>
         Set<ScheduleException>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    public DbSet<Coordination.AutoPreference> AutoPreferences => Set<Coordination.AutoPreference>();
+    public DbSet<Coordination.Callout> Callouts => Set<Coordination.Callout>();
+    public DbSet<Coordination.Handoff> Handoffs => Set<Coordination.Handoff>();
+
+    // JO-02: Notificaciones persistentes
+    public DbSet<NotificationEntry> NotificationEntries =>
+        Set<NotificationEntry>();
+
+    // ==========================================
+    // CONFIGURACION DE ENTIDADES
+    // ==========================================
+
+    protected override void OnModelCreating(
+        ModelBuilder modelBuilder)
     {
-        // Configuracion existente de auditoria
->>>>>>> Stashed changes
+        modelBuilder.Entity<Coordination.Handoff>().HasIndex(x => x.IncidentId)
+            .IsUnique().HasFilter("[AcceptedAtUtc] IS NULL");
+        modelBuilder.Entity<Incident>().HasIndex(x => x.AutoDueAtUtc)
+            .HasFilter("[AutoDueAtUtc] IS NOT NULL");
+
+        // Configuraciones de los otros modulos
+        modelBuilder.ApplyConfigurationsFromAssembly(
+            typeof(AppDbContext).Assembly);
+
+        // Configuraciones del modulo de Diana
+        Univalle.Emergencias.Api.Diana.DianaModel.Configure(
+            modelBuilder);
+
+        // ======================================
+        // AUDITORIA
+        // ======================================
+
         modelBuilder.Entity<AuditEntry>(entity =>
         {
             entity.ToTable("AuditEntries");
@@ -76,7 +120,10 @@ public sealed class AppDbContext(
             entity.HasIndex(entry => entry.IncidentId);
         });
 
-        // Configuracion de horarios
+        // ======================================
+        // HORARIOS - JORGE
+        // ======================================
+
         modelBuilder.Entity<WorkSchedule>(entity =>
         {
             entity.ToTable("WorkSchedules");
@@ -106,7 +153,10 @@ public sealed class AppDbContext(
             });
         });
 
-        // Configuracion de excepciones
+        // ======================================
+        // EXCEPCIONES DE HORARIOS - JORGE
+        // ======================================
+
         modelBuilder.Entity<ScheduleException>(entity =>
         {
             entity.ToTable("ScheduleExceptions");

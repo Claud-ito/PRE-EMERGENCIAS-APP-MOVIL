@@ -27,69 +27,10 @@ public class TurnResolver : ITurnResolver
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Convertir el instante UTC a hora de Bolivia
-        var localTime = TimeZoneInfo.ConvertTime(
-            instantUtc,
-            BoliviaTimeZone);
-
+        var localTime = TimeZoneInfo.ConvertTime(instantUtc, BoliviaTimeZone);
         var date = DateOnly.FromDateTime(localTime.DateTime);
-        var time = TimeOnly.FromDateTime(localTime.DateTime);
-
-        var candidates = new List<TurnCoverage>();
-
-        foreach (var schedule in _schedules.Where(s => s.IsActive))
-        {
-            // Primera version: turnos dentro del mismo dia
-            if (schedule.StartTime >= schedule.EndTime)
-                continue;
-
-            var exception = _exceptions
-                .Where(e => e.IsActive
-                    && e.CoordinatorUserId == schedule.CoordinatorUserId
-                    && e.Date == date)
-                .SingleOrDefault();
-
-            if (exception is { IsAvailable: false })
-                continue;
-
-            var hasSpecialHours = exception is
-            {
-                IsAvailable: true,
-                StartTime: not null,
-                EndTime: not null
-            };
-
-            var start = hasSpecialHours
-                ? exception!.StartTime!.Value
-                : schedule.StartTime;
-
-            var end = hasSpecialHours
-                ? exception!.EndTime!.Value
-                : schedule.EndTime;
-
-            var matchesDay = schedule.DayOfWeek
-                == localTime.DayOfWeek;
-
-            if (!matchesDay && !hasSpecialHours)
-                continue;
-
-            if (start >= end || time < start || time >= end)
-                continue;
-
-            var startLocal = date.ToDateTime(start);
-            var endLocal = date.ToDateTime(end);
-
-            var startUtc = TimeZoneInfo.ConvertTimeToUtc(
-                startLocal, BoliviaTimeZone);
-
-            var endUtc = TimeZoneInfo.ConvertTimeToUtc(
-                endLocal, BoliviaTimeZone);
-
-            candidates.Add(new TurnCoverage(
-                schedule.CoordinatorUserId,
-                new DateTimeOffset(startUtc, TimeSpan.Zero),
-                new DateTimeOffset(endUtc, TimeSpan.Zero)));
-        }
+        var candidates = TurnCalendar.Coverage(date, _schedules, _exceptions)
+            .Where(x => x.StartsAtUtc <= instantUtc && x.EndsAtUtc > instantUtc).ToList();
 
         // Si no hay cobertura, o existe una configuracion
         // ambigua, no asignamos un coordinador arbitrario.
