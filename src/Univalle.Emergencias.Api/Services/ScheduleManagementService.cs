@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Univalle.Emergencias.Api.Data;
 using Univalle.Emergencias.Api.Models;
+using Univalle.Emergencias.Contracts.Audit;
 using Univalle.Emergencias.Contracts.Identity;
 using Univalle.Emergencias.Contracts.Turns;
 
@@ -11,13 +12,16 @@ public sealed class ScheduleManagementService
 {
     private readonly AppDbContext _context;
     private readonly IIdentityContext _identity;
+    private readonly IAuditTrail _audit;
 
     public ScheduleManagementService(
         AppDbContext context,
-        IIdentityContext identity)
+        IIdentityContext identity,
+        IAuditTrail audit)
     {
         _context = context;
         _identity = identity;
+        _audit = audit;
     }
 
     // Verificar que el usuario pueda administrar
@@ -116,7 +120,8 @@ public sealed class ScheduleManagementService
             x.IsActive && x.DayOfWeek == previous.Date.DayOfWeek).ToListAsync(ct);
         CheckCoverage(previous.Date, schedules, exceptions);
         previous.IsActive = false;
-        await _context.SaveChangesAsync(ct);
+        await RecordAsync(user.UserId, "schedule.exception.deactivate",
+            "ScheduleException", previous.ScheduleExceptionId, ct);
         await tx.CommitAsync(ct);
     }
 
@@ -203,7 +208,8 @@ public sealed class ScheduleManagementService
         await CheckDatedOverlapsAsync(schedule, cancellationToken);
         _context.WorkSchedules.Add(schedule);
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await RecordAsync(user.UserId, "schedule.create", "WorkSchedule",
+            schedule.WorkScheduleId, cancellationToken);
         await tx.CommitAsync(cancellationToken);
 
         return new WorkScheduleDto(
@@ -288,7 +294,8 @@ public sealed class ScheduleManagementService
         schedule.StartTime = request.StartTime;
         schedule.EndTime = request.EndTime;
         await CheckDatedOverlapsAsync(schedule, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        await RecordAsync(user.UserId, "schedule.update", "WorkSchedule",
+            schedule.WorkScheduleId, cancellationToken);
         await tx.CommitAsync(cancellationToken);
 
         return new WorkScheduleDto(
@@ -324,7 +331,8 @@ public sealed class ScheduleManagementService
         // Desactivacion logica: no eliminamos el registro.
         schedule.IsActive = false;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await RecordAsync(user.UserId, "schedule.deactivate", "WorkSchedule",
+            schedule.WorkScheduleId, cancellationToken);
     }
 
     // ==========================================
@@ -418,10 +426,18 @@ public sealed class ScheduleManagementService
             previous.Reason = exception.Reason;
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await RecordAsync(user.UserId,
+            previous is null ? "schedule.exception.create" : "schedule.exception.update",
+            "ScheduleException", (previous ?? exception).ScheduleExceptionId,
+            cancellationToken);
 
         await tx.CommitAsync(cancellationToken);
         return previous ?? exception;
     }
+
+    private Task<Guid> RecordAsync(Guid actor, string action, string entity,
+        Guid entityId, CancellationToken ct) =>
+        _audit.RecordAsync(new AuditWriteRequest(actor, AuditActorKind.User,
+            action, entity, entityId), ct);
 
 }

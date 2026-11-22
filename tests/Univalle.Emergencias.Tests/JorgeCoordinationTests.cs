@@ -40,11 +40,12 @@ public sealed class JorgeCoordinationTests(ITestOutputHelper output)
     }
 
     private CalloutService Calls(AppDbContext db) => new(db, new Lookup(leader),
-        new PersistentNotificationSender(db, clock), clock);
+        new PersistentNotificationSender(db, clock), clock, new EfAuditTrail(db, clock));
 
     private CoordinationController Controller(AppDbContext db, Guid actor)
     {
-        var controller = new CoordinationController(db, Calls(db), clock) {
+        var controller = new CoordinationController(db, Calls(db), clock,
+            new EfAuditTrail(db, clock)) {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
         };
         controller.HttpContext.Items[RequirePermissionAttribute.ActorKey] =
@@ -100,6 +101,8 @@ public sealed class JorgeCoordinationTests(ITestOutputHelper output)
             output.WriteLine($"{call.Channel} {call.SenderUserId?.ToString() ?? "Sistema"} -> {call.RecipientUserId} {call.OccurredAtUtc:O}");
         }
         Assert.Equal(expectAuto ? 1 : 0, await recovered.NotificationEntries.CountAsync(x => x.Type == "incident.auto"));
+        Assert.Equal(manual || expectAuto ? 1 : 0,
+            await recovered.AuditEntries.CountAsync(x => x.Action.StartsWith("incident.callout.")));
     }
 
     [Fact]
@@ -145,7 +148,8 @@ public sealed class JorgeCoordinationTests(ITestOutputHelper output)
         var incident = new Incident { IncidentId = Guid.NewGuid(), CurrentCoordinatorUserId = coordinator };
         db.Incidents.Add(incident);
         await db.SaveChangesAsync();
-        var schedules = new ScheduleManagementService(db, new Identity(coordinator));
+        var schedules = new ScheduleManagementService(db, new Identity(coordinator),
+            new EfAuditTrail(db, clock));
         var shift = await schedules.CreateScheduleAsync(new(DayOfWeek.Monday, new(8, 0), new(16, 0)));
         await schedules.UpdateScheduleAsync(shift.WorkScheduleId, new(DayOfWeek.Monday, new(9, 0), new(17, 0)));
         await schedules.DeactivateScheduleAsync(shift.WorkScheduleId);
@@ -157,6 +161,11 @@ public sealed class JorgeCoordinationTests(ITestOutputHelper output)
         Assert.IsType<NoContentResult>(await Controller(db, next).Accept(handoff.Id, default));
         Assert.Equal(next, (await db.Incidents.AsNoTracking().SingleAsync()).CurrentCoordinatorUserId);
         Assert.NotNull(handoff.AcceptedAtUtc);
+        Assert.Contains(db.AuditEntries, x => x.Action == "schedule.create" && x.ActorUserId == coordinator);
+        Assert.Contains(db.AuditEntries, x => x.Action == "schedule.update" && x.ActorUserId == coordinator);
+        Assert.Contains(db.AuditEntries, x => x.Action == "schedule.deactivate" && x.ActorUserId == coordinator);
+        Assert.Contains(db.AuditEntries, x => x.Action == "coordination.handoff.propose" && x.IncidentId == incident.IncidentId);
+        Assert.Contains(db.AuditEntries, x => x.Action == "coordination.handoff.accept" && x.ActorUserId == next);
     }
 
     [Fact]
@@ -174,6 +183,8 @@ public sealed class JorgeCoordinationTests(ITestOutputHelper output)
         clock.Now += TimeSpan.FromMinutes(5);
         Assert.False(await Calls(db).RegisterAsync(incident.IncidentId, null, default));
         Assert.Empty(await db.Callouts.ToListAsync());
+        Assert.Contains(db.AuditEntries, x => x.Action == "coordination.auto.disable" && x.ActorUserId == coordinator);
+        Assert.Contains(db.AuditEntries, x => x.Action == "coordination.auto.enable" && x.ActorUserId == coordinator);
     }
 
     [Fact]
@@ -181,7 +192,8 @@ public sealed class JorgeCoordinationTests(ITestOutputHelper output)
     {
         await using var database = await SqliteIncidentDatabase.CreateAsync();
         await using var db = database.NewContext();
-        var manager = new ScheduleManagementService(db, new Identity(coordinator));
+        var manager = new ScheduleManagementService(db, new Identity(coordinator),
+            new EfAuditTrail(db, clock));
         var monday = new DateOnly(2026, 11, 23);
         await manager.CreateScheduleAsync(new(DayOfWeek.Monday, new(8, 0), new(12, 0)));
         await manager.CreateScheduleAsync(new(DayOfWeek.Wednesday, new(8, 0), new(12, 0)));
@@ -191,7 +203,8 @@ public sealed class JorgeCoordinationTests(ITestOutputHelper output)
         Assert.Equal(coordinator, day[1].CoordinatorUserId);
         Assert.Null(day[0].CoordinatorUserId);
         Assert.Null(day[2].CoordinatorUserId);
-        var other = new ScheduleManagementService(db, new Identity(Guid.NewGuid()));
+        var other = new ScheduleManagementService(db, new Identity(Guid.NewGuid()),
+            new EfAuditTrail(db, clock));
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             other.CreateExceptionAsync(monday, true, new(13, 0), new(15, 0), null));
         await Assert.ThrowsAsync<KeyNotFoundException>(() => other.RemoveExceptionAsync(special.ScheduleExceptionId, default));
@@ -199,6 +212,9 @@ public sealed class JorgeCoordinationTests(ITestOutputHelper output)
         Assert.Null(Assert.Single(await manager.CalendarAsync(monday, default)).CoordinatorUserId);
         await manager.RemoveExceptionAsync(special.ScheduleExceptionId, default);
         Assert.Equal(coordinator, (await manager.CalendarAsync(monday, default))[1].CoordinatorUserId);
+        Assert.Contains(db.AuditEntries, x => x.Action == "schedule.exception.create" && x.ActorUserId == coordinator);
+        Assert.Contains(db.AuditEntries, x => x.Action == "schedule.exception.update" && x.ActorUserId == coordinator);
+        Assert.Contains(db.AuditEntries, x => x.Action == "schedule.exception.deactivate" && x.ActorUserId == coordinator);
     }
 
     [SqlServerFact]

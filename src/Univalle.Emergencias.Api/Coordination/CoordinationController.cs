@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Univalle.Emergencias.Api.Data;
 using Univalle.Emergencias.Api.Identity;
+using Univalle.Emergencias.Contracts.Audit;
 using Univalle.Emergencias.Contracts.Common;
 using Univalle.Emergencias.Contracts.Identity;
 using Univalle.Emergencias.Contracts.Incidents;
@@ -10,7 +11,8 @@ using Univalle.Emergencias.Contracts.Turns;
 namespace Univalle.Emergencias.Api.Coordination;
 
 [ApiController, Route("api/v1/coordination"), RequirePermission(PermissionCodes.CoordinateAssignedIncident)]
-public sealed class CoordinationController(AppDbContext db, CalloutService calls, IServerClock clock) : ControllerBase
+public sealed class CoordinationController(AppDbContext db, CalloutService calls,
+    IServerClock clock, IAuditTrail audit) : ControllerBase
 {
     private Guid Actor => ((AuthenticatedUser)HttpContext.Items[RequirePermissionAttribute.ActorKey]!).UserId;
 
@@ -36,7 +38,9 @@ public sealed class CoordinationController(AppDbContext db, CalloutService calls
                 incident.ConcurrencyStamp = Guid.NewGuid();
             }
         }
-        await db.SaveChangesAsync(ct);
+        await audit.RecordAsync(new AuditWriteRequest(Actor, AuditActorKind.User,
+            setting.Enabled ? "coordination.auto.enable" : "coordination.auto.disable",
+            "AutoPreference", Actor), ct);
         await tx.CommitAsync(ct);
         return NoContent();
     }
@@ -79,9 +83,14 @@ public sealed class CoordinationController(AppDbContext db, CalloutService calls
             (x.Role == UserRole.SySO || x.Role == UserRole.Mantenimiento), ct)) return BadRequest();
         if (await db.Handoffs.AnyAsync(x => x.IncidentId == id && x.AcceptedAtUtc == null, ct)) return Conflict();
         incident.ConcurrencyStamp = Guid.NewGuid();
-        db.Handoffs.Add(new Handoff { Id = Guid.NewGuid(), IncidentId = id, FromUserId = Actor,
-            ToUserId = target.UserId, ProposedAtUtc = clock.UtcNow });
-        try { await db.SaveChangesAsync(ct); }
+        var proposal = new Handoff { Id = Guid.NewGuid(), IncidentId = id,
+            FromUserId = Actor, ToUserId = target.UserId, ProposedAtUtc = clock.UtcNow };
+        db.Handoffs.Add(proposal);
+        try
+        {
+            await audit.RecordAsync(new AuditWriteRequest(Actor, AuditActorKind.User,
+                "coordination.handoff.propose", "Handoff", proposal.Id, id), ct);
+        }
         catch (DbUpdateConcurrencyException) { return Conflict(); }
         catch (DbUpdateException) when (db.Database.IsSqlServer())
         {
@@ -103,7 +112,12 @@ public sealed class CoordinationController(AppDbContext db, CalloutService calls
         incident.CurrentCoordinatorUserId = Actor;
         incident.ConcurrencyStamp = Guid.NewGuid();
         handoff.AcceptedAtUtc = clock.UtcNow;
-        try { await db.SaveChangesAsync(ct); }
+        try
+        {
+            await audit.RecordAsync(new AuditWriteRequest(Actor, AuditActorKind.User,
+                "coordination.handoff.accept", "Handoff", handoff.Id,
+                handoff.IncidentId), ct);
+        }
         catch (DbUpdateConcurrencyException) { return Conflict(); }
         return NoContent();
     }

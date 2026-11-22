@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Univalle.Emergencias.Api.Data;
 using Univalle.Emergencias.Api.Incidents;
+using Univalle.Emergencias.Contracts.Audit;
 using Univalle.Emergencias.Contracts.Brigades;
 using Univalle.Emergencias.Contracts.Common;
 using Univalle.Emergencias.Contracts.Incidents;
@@ -9,7 +10,7 @@ using Univalle.Emergencias.Contracts.Notifications;
 namespace Univalle.Emergencias.Api.Coordination;
 
 public sealed class CalloutService(AppDbContext db, IBrigadeLeaderLookup leaders,
-    INotificationSender notifications, IServerClock clock)
+    INotificationSender notifications, IServerClock clock, IAuditTrail audit)
 {
     public async Task<bool> RegisterAsync(Guid incidentId, Guid? manualActor, CancellationToken ct)
     {
@@ -44,6 +45,11 @@ public sealed class CalloutService(AppDbContext db, IBrigadeLeaderLookup leaders
         if (manualActor is null)
             await notifications.RegisterAndSendAsync(new NotificationRequest(
                 Guid.NewGuid(), incidentId, "incident.auto", leader.UserId), ct);
+        await audit.RecordAsync(new AuditWriteRequest(
+            manualActor, manualActor.HasValue ? AuditActorKind.User : AuditActorKind.System,
+            manualActor.HasValue ? "incident.callout.manual" : "incident.callout.auto",
+            "Callout", incidentId, incidentId,
+            System.Text.Json.JsonSerializer.Serialize(new { RecipientUserId = leader.UserId })), ct);
         await transaction.CommitAsync(ct);
         return true;
     }
