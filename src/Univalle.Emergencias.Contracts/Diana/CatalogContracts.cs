@@ -26,10 +26,21 @@ public interface IBrigadeUserDirectory
     Task<IReadOnlyList<BrigadeUser>> GetAssignableUsersAsync(CancellationToken cancellationToken = default);
 }
 
-/// <summary>Base de RF10; no contiene datos clínicos pendientes de validación de SySO.</summary>
+/// <summary>Base RF10 con una plantilla opcional, ficticia y provisional para ensayos.</summary>
 public sealed record InjuryRecordView(Guid InjuryRecordId, Guid IncidentId, Guid PhysicianUserId,
-    DateTimeOffset CreatedAtUtc);
-public sealed record CreateInjuryRecordInput(bool EvaluatedOrAttended);
+    DateTimeOffset CreatedAtUtc, TestClinicalDraft? TestClinicalDraft = null);
+public sealed record CreateInjuryRecordInput(bool EvaluatedOrAttended, TestClinicalDraft? TestClinicalDraft = null);
+
+/// <summary>Esquema de ensayo; no representa una plantilla aprobada ni admite datos reales.</summary>
+public sealed record TestClinicalDraft(
+    [param: Required, StringLength(100)] string PatientAlias,
+    [param: Range(0, 120)] int? Age,
+    [param: Required, StringLength(1500)] string Observations,
+    [param: Required, StringLength(1500)] string CareProvided,
+    [param: Required, StringLength(1500)] string Report,
+    bool IsTestData = true);
+public sealed record TestClinicalReport(Guid InjuryRecordId, Guid IncidentId, Guid PhysicianUserId,
+    DateTimeOffset CreatedAtUtc, string TemplateVersion, bool IsTestData, string Text);
 
 public sealed record InjuryIncidentView(Guid IncidentId, string ModuleName, string FloorName,
     string Status, DateTimeOffset OpenedAtUtc);

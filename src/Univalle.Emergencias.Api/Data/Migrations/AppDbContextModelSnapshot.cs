@@ -160,6 +160,9 @@ namespace Univalle.Emergencias.Api.Data.Migrations
                     b.Property<Guid>("PhysicianUserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("TestClinicalDraftJson")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("InjuryRecordId");
 
                     b.HasIndex("IncidentId");

@@ -55,4 +55,5 @@ public sealed class InjuryRecord
     public Guid IncidentId { get; set; }
     public Guid PhysicianUserId { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
+    public string? TestClinicalDraftJson { get; set; }
 }

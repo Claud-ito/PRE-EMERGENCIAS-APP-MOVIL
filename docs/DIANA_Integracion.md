@@ -38,6 +38,8 @@ DELETE desactiva sin borrar físicamente los catálogos. `includeInactive=true` 
 
 ## Evidencia y límites
 
+Ampliación del 22/11/2026 autorizada por el jefe a través de Diana: ficha e informe provisionales con datos ficticios. Consultar `DIANA_Plantilla_Clinica_Prueba.md`. El POST admite `testClinicalDraft` de forma opcional y hay un GET protegido `.../{recordId}/test-report`. Solo Médico accede a ambos. La migración `20261122191445_DianaTestClinicalDraft` agrega una columna nullable y conserva las fichas base. El prototipo está habilitado por configuración en Development y rechaza datos no marcados como prueba; no se habilita automáticamente en producción. Las comprobaciones móviles y conjuntas quedan para otro día por instrucción del jefe.
+
 El 22/11/2026 se revisaron los resultados de la terminal de Diana: **38 pruebas aprobadas con SQL Server LocalDB, 0 fallidas y 0 omitidas**; MAUI Windows y Android compilaron con **0 errores y 0 advertencias**. `DianaIdentityIntegrationTests` comprueba por HTTP las sesiones reales de Said junto a catálogos, brigadas y fichas, incluida una variante sobre SQL Server migrado.
 
 Los comandos para repetir las comprobaciones y la matriz de entrega están en `docs/DIANA_Entrega_Hoy.md`. No es necesario repetir la suite para un cambio exclusivamente documental.
