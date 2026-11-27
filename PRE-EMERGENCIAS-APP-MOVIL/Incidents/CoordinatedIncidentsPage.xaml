@@ -3,21 +3,21 @@
     x:Class="PRE_EMERGENCIAS_APP_MOVIL.Incidents.CoordinatedIncidentsPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    Title="Mis incidentes">
+    Title="Incidentes">
     <RefreshView x:Name="Refresher" Refreshing="OnRefreshing">
         <ScrollView>
-            <VerticalStackLayout Padding="20,24,20,120" Spacing="16">
+            <VerticalStackLayout Padding="16,20,16,120" Spacing="14">
                 <Label
                     Text="Incidentes a mi cargo"
                     Style="{StaticResource Headline}"
                     SemanticProperties.HeadingLevel="Level1" />
                 <Label
-                    Text="Incidentes activos que coordinas y todos los aportes recibidos."
+                    Text="Toca un incidente para ver sus aportes. Desliza hacia abajo para actualizar."
                     HorizontalTextAlignment="Center" />
-                <Button x:Name="RefreshButton" Text="Actualizar" Clicked="OnRefreshClicked" />
                 <Label x:Name="StatusLabel" HorizontalTextAlignment="Center" />
+                <Label x:Name="MessageLabel" HorizontalTextAlignment="Center" FontAttributes="Bold" />
+                <VerticalStackLayout x:Name="HandoffsLayout" Spacing="10" />
                 <VerticalStackLayout x:Name="IncidentsLayout" Spacing="12" />
-
             </VerticalStackLayout>
         </ScrollView>
     </RefreshView>

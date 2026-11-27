@@ -184,6 +184,20 @@ public sealed class UsersController(
         return NoContent();
     }
 
+    /// <summary>Revierte una baja: la cuenta recupera el acceso con sus mismos datos e historial.</summary>
+    [HttpPost("{userId:guid}/reactivate")]
+    public async Task<IActionResult> Reactivate(Guid userId, CancellationToken cancellationToken)
+    {
+        var user = await db.Users.SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken);
+        if (user is null) return NotFound();
+        if (user.IsActive) return NoContent();
+        user.IsActive = true;
+        user.DeactivatedAtUtc = null;
+        user.UpdatedAtUtc = clock.UtcNow.ToUniversalTime();
+        await RecordAsync("user.reactivate", userId, cancellationToken);
+        return NoContent();
+    }
+
     private async Task RecordAsync(string action, Guid userId, CancellationToken cancellationToken)
     {
         var actor = (AuthenticatedUser)HttpContext.Items[RequirePermissionAttribute.ActorKey]!;

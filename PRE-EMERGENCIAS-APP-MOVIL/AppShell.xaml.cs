@@ -44,16 +44,17 @@ public partial class AppShell : Shell
         root.Items.Add(CreateTab("Cuenta", "account", accountPage));
         root.Items.Add(CreateTab("Inicio", MobileRoutes.Home, mainPage));
         _reportTab = CreateTab("Reportar", IncidentMobileRoutes.Report, reportIncidentPage);
-        _coordinatedTab = CreateTab("Mis incidentes", IncidentMobileRoutes.Coordinated, coordinatedIncidentsPage);
+        _coordinatedTab = CreateTab("Incidentes", IncidentMobileRoutes.Coordinated, coordinatedIncidentsPage);
         _dianaTab = CreateTab("Catálogos y atención", "diana-menu", dianaMenuPage);
         _usersTab = CreateTab("Usuarios", "users", usersPage);
         _suggestionsTab = CreateTab("Sugerencias", "suggestions", suggestionsPage);
         _inboxTab = CreateTab("Avisos", "notifications", inbox);
         _turnTab = CreateTab("Turnos", "turns", turns);
+        // Incidentes ocupa el lugar de Avisos para el encargado: así queda en la barra visible y no en «More».
         root.Items.Add(_inboxTab);
+        root.Items.Add(_coordinatedTab);
         root.Items.Add(_turnTab);
         root.Items.Add(_reportTab);
-        root.Items.Add(_coordinatedTab);
         root.Items.Add(_dianaTab);
         root.Items.Add(_usersTab);
         root.Items.Add(_suggestionsTab);
@@ -77,10 +78,18 @@ public partial class AppShell : Shell
         MonitorAlerts();
     }
 
+    /// <summary>
+    /// El encargado (SySO/Mantenimiento) recibe la alerta inicial en la pestaña Incidentes, no en Avisos.
+    /// Líder, brigadista y médico conservan Avisos para sus convocatorias.
+    /// </summary>
+    private bool UsesIncidentsTab =>
+        _session.CurrentUser?.Permissions.Contains(PermissionCodes.CoordinateAssignedIncident) == true;
+
     private void MonitorAlerts()
     {
         _foregroundAlerts?.Cancel();
         _inboxTab.Title = "Avisos";
+        _coordinatedTab.Title = "Incidentes";
         if (!_active || _session.CurrentUser?.Permissions.Contains(PermissionCodes.ReceiveNotifications) != true) return;
         _foregroundAlerts = new();
         _ = WatchInboxAsync(_foregroundAlerts);
@@ -93,7 +102,8 @@ public partial class AppShell : Shell
         {
             while (!ct.IsCancellationRequested)
             {
-                if (CurrentPage is not Coordination.InboxPage)
+                // Cada pestaña de avisos marca sus propias entregas mientras está abierta.
+                if (CurrentPage is not (Coordination.InboxPage or CoordinatedIncidentsPage))
                 {
                     try
                     {
@@ -102,20 +112,29 @@ public partial class AppShell : Shell
                         ct.ThrowIfCancellationRequested();
                         var pending = items.FirstOrDefault(x => x.DeliveryStatus == "Pending");
                         var unread = items.Count(x => x.ReadAtUtc == null);
-                        _inboxTab.Title = unread == 0 ? "Avisos" : $"Avisos ({unread})";
-                        if (pending is not null && CurrentPage is { } page && page is not Coordination.InboxPage)
+                        var incidents = UsesIncidentsTab;
+                        var tab = incidents ? _coordinatedTab : _inboxTab;
+                        var name = incidents ? "Incidentes" : "Avisos";
+                        tab.Title = unread == 0 ? name : $"{name} ({unread})";
+                        if (pending is not null && CurrentPage is { } page
+                            && page is not (Coordination.InboxPage or CoordinatedIncidentsPage))
                         {
                             var title = pending.Type == "incident.auto" ? "Convocatoria AUTO" : "Alerta inicial";
-                            var open = await page.DisplayAlertAsync(title, $"Incidente {pending.IncidentId}", "Ver avisos", "Cerrar");
+                            var open = await page.DisplayAlertAsync(title, "Hay un incidente nuevo que requiere tu atención.",
+                                incidents ? "Ver incidente" : "Ver avisos", "Cerrar");
                             ct.ThrowIfCancellationRequested();
                             await _coordination.ChangeAsync(HttpMethod.Patch, $"notifications/{pending.EventId}/delivered", ct: ct);
-                            if (open) CurrentItem.CurrentItem = _inboxTab;
+                            if (open) CurrentItem.CurrentItem = tab;
                         }
                     }
                     catch (Exception ex) when (!ct.IsCancellationRequested)
                     {
                         System.Diagnostics.Debug.WriteLine($"Consulta de avisos: {ex.GetType().Name}");
                     }
+                }
+                else
+                {
+                    (UsesIncidentsTab ? _coordinatedTab : _inboxTab).Title = UsesIncidentsTab ? "Incidentes" : "Avisos";
                 }
                 await Task.Delay(TimeSpan.FromSeconds(2), ct);
             }
@@ -127,7 +146,8 @@ public partial class AppShell : Shell
     private void UpdateTabs()
     {
         var user = _session.CurrentUser;
-        _inboxTab.IsVisible = user?.Permissions.Contains(PermissionCodes.ReceiveNotifications) == true;
+        _inboxTab.IsVisible = user?.Permissions.Contains(PermissionCodes.ReceiveNotifications) == true
+            && user.Permissions.Contains(PermissionCodes.CoordinateAssignedIncident) != true;
         _turnTab.IsVisible = user?.Permissions.Contains(PermissionCodes.ConfigureOwnAvailability) == true;
         _reportTab.IsVisible = user?.Permissions.Contains(PermissionCodes.ReportIncident) == true;
         _coordinatedTab.IsVisible =

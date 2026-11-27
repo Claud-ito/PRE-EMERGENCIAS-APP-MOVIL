@@ -100,6 +100,16 @@ public sealed class IncidentQueries(AppDbContext db, ILocationCatalog locations)
         // Las consultas por ID devuelven también ubicaciones dadas de baja (historial).
         var module = await locations.GetModuleAsync(incident.ModuleId, cancellationToken);
         var floor = await locations.GetFloorAsync(incident.FloorId, cancellationToken);
+        var reporterIds = incident.Reports.Select(report => report.ReporterUserId).Distinct().ToList();
+        // El coordinador identifica a cada informante por nombre (también si su cuenta ya está inactiva).
+        var reporters = await db.Users.AsNoTracking()
+            .Where(user => reporterIds.Contains(user.UserId))
+            .Select(user => new { user.UserId, user.FullName, user.Username })
+            .ToDictionaryAsync(user => user.UserId, cancellationToken);
+        var callout = await db.Callouts.AsNoTracking()
+            .Where(call => call.IncidentId == incident.IncidentId)
+            .Select(call => new { call.OccurredAtUtc, call.Channel })
+            .SingleOrDefaultAsync(cancellationToken);
         var reports = incident.Reports
             .OrderBy(report => report.ReportedAtUtc)
             .Select(report => new IncidentReportView(
@@ -109,7 +119,9 @@ public sealed class IncidentQueries(AppDbContext db, ILocationCatalog locations)
                 report.PreliminarySeverity,
                 report.Details,
                 report.ReportedAtUtc,
-                report.IsInitial))
+                report.IsInitial,
+                reporters.GetValueOrDefault(report.ReporterUserId)?.FullName,
+                reporters.GetValueOrDefault(report.ReporterUserId)?.Username))
             .ToList();
 
         return new CoordinatedIncidentView(
@@ -122,6 +134,9 @@ public sealed class IncidentQueries(AppDbContext db, ILocationCatalog locations)
             incident.Status,
             incident.OpenedAtUtc,
             reports.Count,
-            reports);
+            reports,
+            incident.AutoDueAtUtc is { } due ? new DateTimeOffset(DateTime.SpecifyKind(due, DateTimeKind.Utc)) : null,
+            callout?.OccurredAtUtc,
+            callout?.Channel);
     }
 }

@@ -35,6 +35,24 @@ public sealed class DianaPersistenceTests
         Assert.Single(await db.AuditEntries.ToListAsync()); Assert.Single(await db.Set<LocationFloor>().ToListAsync());
     }
     [Fact]
+    public async Task InactiveModuleAndFloorCanBeReactivatedInDependencyOrder() {
+        await using var connection = new SqliteConnection("Data Source=:memory:"); await connection.OpenAsync();
+        await using var db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().UseSqlite(connection).Options);
+        await db.Database.EnsureCreatedAsync();
+        var module = new LocationModule { ModuleId = Guid.NewGuid(), Code = "M1", Name = "Módulo 1", IsActive = false };
+        var floor = new LocationFloor { FloorId = Guid.NewGuid(), ModuleId = module.ModuleId, Name = "Piso 1", IsActive = false };
+        db.AddRange(module, floor); await db.SaveChangesAsync();
+        var controller = new LocationsController(db, new EfAuditTrail(db, new Clock())); Attach(controller);
+        var catalog = new LocationCatalog(db);
+        // Un piso no se reactiva dentro de un módulo inactivo.
+        var blocked = Assert.IsType<ObjectResult>(await controller.ReactivateFloor(floor.FloorId, default));
+        Assert.Equal(409, blocked.StatusCode);
+        Assert.IsType<NoContentResult>(await controller.ReactivateModule(module.ModuleId, default));
+        Assert.IsType<NoContentResult>(await controller.ReactivateFloor(floor.FloorId, default));
+        Assert.True(await catalog.IsActiveFloorInModuleAsync(module.ModuleId, floor.FloorId));
+        Assert.Equal(2, await db.AuditEntries.CountAsync(x => x.Action.EndsWith(".reactivate")));
+    }
+    [Fact]
     public async Task ContactSoftDeleteRetainsIdAndDataForHistoricalReferences() {
         await using var connection = new SqliteConnection("Data Source=:memory:"); await connection.OpenAsync();
         await using var db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().UseSqlite(connection).Options);

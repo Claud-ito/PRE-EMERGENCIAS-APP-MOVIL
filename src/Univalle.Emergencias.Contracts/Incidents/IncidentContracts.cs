@@ -112,9 +112,15 @@ public sealed record IncidentReportView(
     PreliminarySeverity PreliminarySeverity,
     string? Details,
     DateTimeOffset ReportedAtUtc,
-    bool IsInitial);
+    bool IsInitial,
+    string? ReporterName = null,
+    string? ReporterUsername = null);
 
-/// <summary>Seguimiento mínimo del coordinador (AL-02). La reevaluación y órdenes completas son RF12, Sprint 3.</summary>
+/// <summary>
+/// Seguimiento mínimo del coordinador (AL-02). La reevaluación y órdenes completas son RF12, Sprint 3.
+/// AutoDueAtUtc es el plazo AUTO pendiente (null si no corre). CalloutAtUtc y CalloutChannel describen la
+/// convocatoria al líder ya registrada (Manual o AUTO), si existe.
+/// </summary>
 public sealed record CoordinatedIncidentView(
     Guid IncidentId,
     Guid ModuleId,
@@ -125,4 +131,7 @@ public sealed record CoordinatedIncidentView(
     string Status,
     DateTimeOffset OpenedAtUtc,
     int ReportCount,
-    IReadOnlyList<IncidentReportView> Reports);
+    IReadOnlyList<IncidentReportView> Reports,
+    DateTimeOffset? AutoDueAtUtc = null,
+    DateTimeOffset? CalloutAtUtc = null,
+    string? CalloutChannel = null);
