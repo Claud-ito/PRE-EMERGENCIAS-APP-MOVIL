@@ -42,6 +42,14 @@ public sealed class LocationsController(AppDbContext db, IAuditTrail audit) : Di
         item.IsActive = false;
         return await SaveAsync("location.module.deactivate", "LocationModule", id, ct);
     }
+    [HttpPost("modules/{id:guid}/reactivate")]
+    public async Task<IActionResult> ReactivateModule(Guid id, CancellationToken ct) {
+        var item = await Db.Set<LocationModule>().FindAsync([id], ct);
+        if (item is null) return NotFound();
+        if (item.IsActive) return NoContent();
+        item.IsActive = true;
+        return await SaveAsync("location.module.reactivate", "LocationModule", id, ct);
+    }
     [HttpGet("modules/{moduleId:guid}/floors")]
     public async Task<IActionResult> Floors(Guid moduleId, bool includeInactive = false, CancellationToken ct = default) {
         var module = await Db.Set<LocationModule>().FindAsync([moduleId], ct);
@@ -76,5 +84,16 @@ public sealed class LocationsController(AppDbContext db, IAuditTrail audit) : Di
         if (!item.IsActive) return NoContent();
         item.IsActive = false;
         return await SaveAsync("location.floor.deactivate", "LocationFloor", id, ct);
+    }
+    [HttpPost("floors/{id:guid}/reactivate")]
+    public async Task<IActionResult> ReactivateFloor(Guid id, CancellationToken ct) {
+        var item = await Db.Set<LocationFloor>().FindAsync([id], ct);
+        if (item is null) return NotFound();
+        // Un piso depende de su módulo: no se reactiva dentro de un módulo inactivo.
+        if (!await Db.Set<LocationModule>().AnyAsync(x => x.ModuleId == item.ModuleId && x.IsActive, ct))
+            return Error(409, "inactive_module", "Reactiva primero el módulo.");
+        if (item.IsActive) return NoContent();
+        item.IsActive = true;
+        return await SaveAsync("location.floor.reactivate", "LocationFloor", id, ct);
     }
 }

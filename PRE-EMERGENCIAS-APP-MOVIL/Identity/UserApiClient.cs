@@ -36,6 +36,11 @@ public sealed class UserApiClient(
             ?? throw new InvalidOperationException("La respuesta está vacía.");
     }
 
+    public async Task ReactivateAsync(Guid id)
+    {
+        using var response = await SendAsync(HttpMethod.Post, UserRoutes.Base + "/" + id + "/reactivate");
+    }
+
     public async Task DeactivateAsync(Guid id)
     {
         using var response = await SendAsync(HttpMethod.Delete, UserRoutes.Base + "/" + id);

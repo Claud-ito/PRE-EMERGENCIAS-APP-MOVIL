@@ -14,6 +14,7 @@ public sealed class UsersPage : ContentPage
     private readonly Switch _includeInactive = new();
     private readonly Button _save = new() { Text = "Crear cuenta" };
     private readonly Button _deactivate = new() { Text = "Desactivar cuenta", IsVisible = false };
+    private readonly Button _reactivate = new() { Text = "Reactivar cuenta", IsVisible = false };
     private readonly Label _status = new();
     private readonly VerticalStackLayout _list = new() { Spacing = 8 };
     private Guid? _selectedId;
@@ -30,6 +31,7 @@ public sealed class UsersPage : ContentPage
         _role.SelectedIndex = 0;
         _save.Clicked += OnSaveClicked;
         _deactivate.Clicked += OnDeactivateClicked;
+        _reactivate.Clicked += OnReactivateClicked;
         _includeInactive.Toggled += async (_, _) => await RefreshAsync();
         var newButton = new Button { Text = "Nueva cuenta" };
         newButton.Clicked += (_, _) => ClearForm();
@@ -46,7 +48,7 @@ public sealed class UsersPage : ContentPage
                     new Label { Text = "Gestión de cuentas", FontSize = 24,
                         FontAttributes = FontAttributes.Bold },
                     _username, _email, _fullName, _role, _password,
-                    newButton, _save, _deactivate, _status,
+                    newButton, _save, _deactivate, _reactivate, _status,
                     new HorizontalStackLayout
                     {
                         Spacing = 10,
@@ -139,6 +141,24 @@ public sealed class UsersPage : ContentPage
         finally { _deactivate.IsEnabled = true; }
     }
 
+    private async void OnReactivateClicked(object? sender, EventArgs e)
+    {
+        if (_selectedId is not Guid id) return;
+        _reactivate.IsEnabled = false;
+        try
+        {
+            await _api.ReactivateAsync(id);
+            ClearForm();
+            _status.Text = "Cuenta reactivada. Ya puede iniciar sesión.";
+            await RefreshAsync();
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException)
+        {
+            _status.Text = ex is HttpRequestException ? "No se pudo conectar con la API." : ex.Message;
+        }
+        finally { _reactivate.IsEnabled = true; }
+    }
+
     private void Select(UserView user)
     {
         _selectedId = user.UserId;
@@ -149,9 +169,10 @@ public sealed class UsersPage : ContentPage
         _password.Text = string.Empty;
         _save.Text = "Guardar cambios";
         _deactivate.IsVisible = user.IsActive;
+        _reactivate.IsVisible = !user.IsActive;
         _status.Text = user.IsActive
             ? "Deja la contraseña vacía para conservarla."
-            : "La cuenta inactiva se conserva como historial.";
+            : "Cuenta inactiva: no puede iniciar sesión. Puedes reactivarla.";
         _save.IsVisible = user.IsActive;
     }
 
@@ -166,6 +187,7 @@ public sealed class UsersPage : ContentPage
         _save.Text = "Crear cuenta";
         _save.IsVisible = true;
         _deactivate.IsVisible = false;
+        _reactivate.IsVisible = false;
         _status.Text = string.Empty;
     }
 }

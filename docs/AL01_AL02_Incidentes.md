@@ -64,7 +64,13 @@ Resultado al 2026-11-20: 17/17 correctas.
   - Los errores se muestran en cada campo.
   - Si la ubicación ya no está disponible (422), la lista se recarga.
   - Si falla la red, se conservan los datos y el mismo `ClientRequestId`, de modo que reenviar no duplica el aporte.
-- **Mis incidentes**: incidentes activos del coordinador, cada uno con sus aportes (hora, gravedad, si es el inicial, informante y detalles). Se actualiza deslizando hacia abajo o con el botón Actualizar.
+- **Incidentes** (observaciones del equipo, 2026-11-27): pestaña única del encargado (SySO/Mantenimiento); para él reemplaza a Avisos. Líder, brigadista y médico siguen usando Avisos.
+  - Una tarjeta por incidente. La cabecera muestra tipo, módulo y piso, la hora de la alerta inicial, la gravedad y el total de aportes. Si la alerta inicial no está leída, aparece «Alerta nueva».
+  - Un contador verde indica los aportes nuevos desde la última vez que se abrió la tarjeta (se guarda por usuario en el dispositivo). Al abrir la tarjeta el contador desaparece y la alerta inicial queda leída (`PATCH notifications/{id}/read`).
+  - Al abrir la tarjeta se ven los aportes con el nombre del informante, por ejemplo «Testigo de prueba (testigo.prueba)», en vez de su ID. La API los entrega en `ReporterName`/`ReporterUsername`.
+  - RF09 en la tarjeta: estado de la convocatoria (manual, AUTO o el plazo AUTO pendiente) y el botón «Registrar convocatoria ya realizada al líder», que queda deshabilitado una vez registrada. La API agrega `AutoDueAtUtc`, `CalloutAtUtc` y `CalloutChannel` a la vista. El relevo se propone dentro de la tarjeta; los relevos recibidos se aceptan arriba de la lista.
+  - Se actualiza sola cada 2 s mientras está visible, y también deslizando hacia abajo. Ya no hay botón Actualizar.
+  - Si llega una alerta estando en otra pestaña, aparece «Ver incidente», que abre esta pestaña, y su título muestra los avisos sin leer, por ejemplo «Incidentes (1)».
 - Verificado en el simulador iPhone 18 Pro con iOS 27.2 contra la API local:
   - `docs/evidencias/AL01_ios_reporte_enviado.png`
   - `docs/evidencias/AL02_ios_coordinador_aportes.png`: incidente con 2 aportes, uno desde la app y otro de un segundo testigo.

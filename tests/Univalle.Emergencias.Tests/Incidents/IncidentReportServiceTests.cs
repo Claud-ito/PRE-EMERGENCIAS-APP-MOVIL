@@ -262,4 +262,43 @@ public sealed class IncidentReportServiceTests
         Assert.Single(await queries.GetAssignedAsync(coordinator, default));
         Assert.Empty(await queries.GetAssignedAsync(Guid.NewGuid(), default));
     }
+
+    [Fact]
+    public async Task CoordinatorCardShowsReporterNamesAndRegisteredCallout()
+    {
+        await using var database = await SqliteIncidentDatabase.CreateAsync();
+        var coordinator = Guid.NewGuid();
+        var reporter = Guid.NewGuid();
+        await using (var setup = database.NewContext())
+        {
+            setup.Users.Add(new Univalle.Emergencias.Api.Identity.UserAccount
+            {
+                UserId = reporter, Username = "testigo1", NormalizedUsername = "TESTIGO1",
+                Email = "testigo1@example.test", NormalizedEmail = "TESTIGO1@EXAMPLE.TEST",
+                FullName = "Testigo de prueba", PasswordHash = [1], PasswordSalt = [1],
+                CreatedAtUtc = IncidentHarness.Start, UpdatedAtUtc = IncidentHarness.Start
+            });
+            await setup.SaveChangesAsync();
+        }
+        var harness = new IncidentHarness(database.NewContext, coordinator);
+        var response = await harness.SubmitAsync(reporter, ModuleA, FloorA0);
+
+        await using var db = database.NewContext();
+        var queries = new IncidentQueries(db, harness.Locations);
+        var card = Assert.Single(await queries.GetAssignedAsync(coordinator, default));
+        var report = Assert.Single(card.Reports);
+        Assert.Equal("Testigo de prueba", report.ReporterName);
+        Assert.Equal("testigo1", report.ReporterUsername);
+        Assert.Null(card.CalloutAtUtc);
+
+        db.Callouts.Add(new Univalle.Emergencias.Api.Coordination.Callout
+        {
+            IncidentId = response.IncidentId, SenderUserId = coordinator, RecipientUserId = Guid.NewGuid(),
+            Channel = "Manual", OccurredAtUtc = IncidentHarness.Start.AddSeconds(30)
+        });
+        await db.SaveChangesAsync();
+        card = Assert.Single(await queries.GetAssignedAsync(coordinator, default));
+        Assert.Equal("Manual", card.CalloutChannel);
+        Assert.Equal(IncidentHarness.Start.AddSeconds(30), card.CalloutAtUtc);
+    }
 }

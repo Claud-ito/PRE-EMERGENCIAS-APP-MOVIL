@@ -21,11 +21,21 @@ public sealed class LocationsPage : DianaPage
         Form.Add(Action("Nuevo módulo", () => { selectedModule = null; selectedFloor = null; code.Text = name.Text = floorName.Text = ""; selection.Text = "Nuevo módulo"; floors.Clear(); brigadeInfo.Text = ""; return Task.CompletedTask; }));
         Form.Add(Action("Guardar módulo", SaveModule));
         Form.Add(Action("Desactivar módulo seleccionado", async () => { if (selectedModule is not { IsActive: true }) return; if (!await ConfirmDeactivate()) return; await Api.SendAsync(HttpMethod.Delete, $"locations/modules/{selectedModule.ModuleId}"); selectedModule = null; code.Text = name.Text = ""; await LoadAsync(); }));
+        Form.Add(Action("Reactivar módulo seleccionado", async () => {
+            if (selectedModule is not { IsActive: false }) throw new InvalidOperationException("Selecciona un módulo inactivo.");
+            await Api.SendAsync(HttpMethod.Post, $"locations/modules/{selectedModule.ModuleId}/reactivate");
+            await LoadAsync(); Status.Text = "Módulo reactivado. Sus pisos activos vuelven a estar disponibles para reportar.";
+        }));
         Form.Add(Heading("Brigada del módulo")); Form.Add(brigadeInfo);
         Form.Add(Heading("Pisos")); Form.Add(selection); Form.Add(floors); Form.Add(floorName);
         Form.Add(Action("Nuevo piso", () => { selectedFloor = null; floorName.Text = ""; return Task.CompletedTask; }));
         Form.Add(Action("Guardar piso", SaveFloor));
         Form.Add(Action("Desactivar piso seleccionado", async () => { if (selectedFloor is not { IsActive: true }) return; if (!await ConfirmDeactivate()) return; await Api.SendAsync(HttpMethod.Delete, $"locations/floors/{selectedFloor.FloorId}"); selectedFloor = null; floorName.Text = ""; await LoadFloors(); }));
+        Form.Add(Action("Reactivar piso seleccionado", async () => {
+            if (selectedFloor is not { IsActive: false }) throw new InvalidOperationException("Selecciona un piso inactivo.");
+            await Api.SendAsync(HttpMethod.Post, $"locations/floors/{selectedFloor.FloorId}/reactivate");
+            selectedFloor = null; floorName.Text = ""; await LoadFloors(); Status.Text = "Piso reactivado.";
+        }));
     }
     protected override async Task LoadAsync() {
         var rows = await Api.GetAsync<List<ModuleLocation>>("locations/modules?includeInactive=true"); modules.Clear();

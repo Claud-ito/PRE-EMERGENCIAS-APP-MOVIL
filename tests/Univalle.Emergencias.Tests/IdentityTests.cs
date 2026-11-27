@@ -128,6 +128,17 @@ public sealed class IdentityTests
         Assert.False((await db.Users.SingleAsync(x => x.UserId == view.UserId)).IsActive);
         Assert.NotNull((await db.UserSessions.SingleAsync(x => x.UserId == view.UserId)).RevokedAtUtc);
         Assert.NotEmpty(await db.AuditEntries.Where(x => x.EntityId == view.UserId).ToListAsync());
+
+        // RF03: la baja se puede revertir; la cuenta vuelve a estar activa con su mismo identificador.
+        Assert.IsType<NoContentResult>(
+            await controller.Reactivate(view.UserId, CancellationToken.None));
+        var reactivated = await db.Users.SingleAsync(x => x.UserId == view.UserId);
+        Assert.True(reactivated.IsActive);
+        Assert.Null(reactivated.DeactivatedAtUtc);
+        Assert.Contains(await db.AuditEntries.Where(x => x.EntityId == view.UserId).ToListAsync(),
+            x => x.Action == "user.reactivate");
+        Assert.IsType<NotFoundResult>(
+            await controller.Reactivate(Guid.NewGuid(), CancellationToken.None));
     }
 
     private static UserAccount CreateUser(SystemServerClock clock, string name, UserRole role)
